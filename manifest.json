@@ -1,0 +1,10 @@
+{
+  "name": "Quiz Culture Générale",
+  "short_name": "Quiz CG",
+  "description": "Entraîne-toi avec les questions de La Table des Savoirs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "icons": []
+}
