@@ -417,6 +417,161 @@
     }
     .skip-btn:hover { color: var(--text-secondary); }
 
+    /* ===== STATS SCREEN ===== */
+    #stats-screen {
+      align-items: center;
+      padding-bottom: 24px;
+    }
+    .stats-wrapper {
+      width: 100%;
+      max-width: 500px;
+      padding: 8px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .stats-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .stats-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .stats-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .stats-kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .stats-kpi-title {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .stats-kpi-value {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text-primary);
+    }
+    .stats-kpi-meta {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .stats-segment {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 6px;
+    }
+    .stats-segment-btn {
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .stats-segment-btn.active {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      box-shadow: 0 0 0 1px var(--border-glow) inset;
+    }
+    .theme-chart {
+      background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(16,185,129,0.06));
+      border: 1px solid rgba(56,189,248,0.35);
+      border-radius: var(--radius);
+      padding: 14px 12px 12px;
+    }
+    .theme-chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #67e8f9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .theme-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .theme-bar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+      min-height: 170px;
+      justify-content: flex-end;
+    }
+    .theme-bar-pct {
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .theme-bar-track {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+    .theme-bar-fill {
+      width: 100%;
+      border-radius: 10px 10px 0 0;
+      transition: height 0.35s ease;
+    }
+    .theme-bar-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      width: 100%;
+      line-height: 1.2;
+      min-height: 28px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .stats-open-btn {
+      width: 100%;
+      margin-top: 6px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .stats-open-btn:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 14px var(--accent-blue-glow);
+    }
+
     /* ===== RESULTS SCREEN ===== */
     #results-screen { align-items: center; justify-content: center; }
     .results-card {
@@ -556,6 +711,8 @@
       .question-text { font-size: 17px; }
       .app-title { font-size: 24px; }
       .stat-value { font-size: 24px; }
+      .stats-kpis { grid-template-columns: 1fr; }
+      .theme-bars { grid-template-columns: repeat(2, 1fr); }
     }
 
     /* Footer */
@@ -644,12 +801,57 @@
     <div class="filter-section">
       <div class="mode-title">Filtrer par thème</div>
       <div class="filter-chips" id="theme-chips"></div>
+      <button class="stats-open-btn" onclick="openStats()">📊 Voir mes stats détaillées</button>
     </div>
 
     <div class="footer">
       Questions issues de <a href="https://latabledessavoirs.fr" target="_blank">La Table des Savoirs</a><br>
       App d'entraînement personnel<br>
       <button onclick="if(confirm('Réinitialiser toutes les stats et la progression ?')){localStorage.removeItem('quiz_stats');location.reload();}" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;margin-top:8px;text-decoration:underline">Réinitialiser les stats</button>
+    </div>
+  </div>
+
+  <!-- ========== STATS SCREEN ========== -->
+  <div id="stats-screen" class="screen">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goHome()">← Retour</button>
+      <span class="quiz-progress-text">Mes Stats</span>
+    </div>
+
+    <div class="stats-wrapper">
+      <div>
+        <div class="stats-title">Précision et progression</div>
+        <div class="stats-subtitle">Vue globale + détail par thème</div>
+      </div>
+
+      <div class="stats-kpis">
+        <div class="stats-kpi-card">
+          <div class="stats-kpi-title">Précision</div>
+          <div class="stats-kpi-value" id="stats-accuracy">0%</div>
+          <div class="stats-kpi-meta" id="stats-answered">0 réponses</div>
+        </div>
+        <div class="stats-kpi-card">
+          <div class="stats-kpi-title">Série Max</div>
+          <div class="stats-kpi-value" id="stats-best-streak">0</div>
+          <div class="stats-kpi-meta">meilleure perf</div>
+        </div>
+        <div class="stats-kpi-card">
+          <div class="stats-kpi-title">Cycle</div>
+          <div class="stats-kpi-value" id="stats-cycle">1</div>
+          <div class="stats-kpi-meta" id="stats-remaining">0 restantes</div>
+        </div>
+      </div>
+
+      <div class="stats-segment" id="stats-segment">
+        <button class="stats-segment-btn active" data-mode="all" onclick="setStatsViewMode('all')">Toutes</button>
+        <button class="stats-segment-btn" data-mode="abordable" onclick="setStatsViewMode('abordable')">Abordable</button>
+        <button class="stats-segment-btn" data-mode="expert" onclick="setStatsViewMode('expert')">Expert</button>
+      </div>
+
+      <div class="theme-chart">
+        <div class="theme-chart-title" id="theme-chart-title">Précision par thème - Toutes</div>
+        <div class="theme-bars" id="theme-bars"></div>
+      </div>
     </div>
   </div>
 
@@ -748,9 +950,67 @@
     let cycleNumber = 1;
 
     // Persistent stats
-    let stats = JSON.parse(localStorage.getItem('quiz_stats') || '{}');
-    if (!stats.totalCorrect) stats = { totalCorrect: 0, totalAnswered: 0, bestStreak: 0, seenIds: [], cycles: 0 };
-    if (!stats.cycles) stats.cycles = 0;
+    function createDefaultStats() {
+      return {
+        totalCorrect: 0,
+        totalAnswered: 0,
+        bestStreak: 0,
+        seenIds: [],
+        cycles: 0,
+        byMode: {
+          all: { correct: 0, answered: 0 },
+          abordable: { correct: 0, answered: 0 },
+          expert: { correct: 0, answered: 0 },
+        },
+        byTheme: {},
+      };
+    }
+
+    function normalizeStats(raw) {
+      const base = createDefaultStats();
+      const src = (raw && typeof raw === 'object') ? raw : {};
+
+      base.totalCorrect = Number(src.totalCorrect) || 0;
+      base.totalAnswered = Number(src.totalAnswered) || 0;
+      base.bestStreak = Number(src.bestStreak) || 0;
+      base.seenIds = Array.isArray(src.seenIds) ? src.seenIds : [];
+      base.cycles = Number(src.cycles) || 0;
+
+      const modes = ['all', 'abordable', 'expert'];
+      if (src.byMode && typeof src.byMode === 'object') {
+        modes.forEach(mode => {
+          const modeSrc = src.byMode[mode] || {};
+          base.byMode[mode] = {
+            correct: Number(modeSrc.correct) || 0,
+            answered: Number(modeSrc.answered) || 0,
+          };
+        });
+      }
+
+      if (src.byTheme && typeof src.byTheme === 'object') {
+        Object.entries(src.byTheme).forEach(([theme, val]) => {
+          const all = val && val.all ? val.all : {};
+          const abordable = val && val.abordable ? val.abordable : {};
+          const expert = val && val.expert ? val.expert : {};
+          base.byTheme[theme] = {
+            all: { correct: Number(all.correct) || 0, answered: Number(all.answered) || 0 },
+            abordable: { correct: Number(abordable.correct) || 0, answered: Number(abordable.answered) || 0 },
+            expert: { correct: Number(expert.correct) || 0, answered: Number(expert.answered) || 0 },
+          };
+        });
+      }
+
+      return base;
+    }
+
+    let stats;
+    try {
+      stats = normalizeStats(JSON.parse(localStorage.getItem('quiz_stats') || 'null'));
+    } catch (e) {
+      stats = createDefaultStats();
+    }
+
+    let statsViewMode = 'all';
 
     // Theme emoji mapping
     const THEME_MAP = {
@@ -784,6 +1044,7 @@
       updateHomeStats();
       buildThemeChips();
       updateCounts();
+      saveStats();
     }
 
     // ======================================
@@ -858,6 +1119,96 @@
       document.getElementById('count-all').textContent = getFilteredQuestions('all').length + ' questions';
       document.getElementById('count-abordable').textContent = getFilteredQuestions('abordable').length + ' questions';
       document.getElementById('count-expert').textContent = getFilteredQuestions('expert').length + ' questions';
+    }
+
+    function ensureThemeStats(theme) {
+      if (!stats.byTheme[theme]) {
+        stats.byTheme[theme] = {
+          all: { correct: 0, answered: 0 },
+          abordable: { correct: 0, answered: 0 },
+          expert: { correct: 0, answered: 0 },
+        };
+      }
+      return stats.byTheme[theme];
+    }
+
+    function recordAnswerStats(question, isCorrect) {
+      stats.byMode.all.answered++;
+      if (isCorrect) stats.byMode.all.correct++;
+
+      const mode = question.difficulty === 'expert' ? 'expert' : 'abordable';
+      stats.byMode[mode].answered++;
+      if (isCorrect) stats.byMode[mode].correct++;
+
+      const themeStats = ensureThemeStats(question.theme);
+      themeStats.all.answered++;
+      if (isCorrect) themeStats.all.correct++;
+
+      themeStats[mode].answered++;
+      if (isCorrect) themeStats[mode].correct++;
+    }
+
+    function openStats() {
+      renderStatsScreen();
+      showScreen('stats-screen');
+    }
+
+    function setStatsViewMode(mode) {
+      statsViewMode = mode;
+      document.querySelectorAll('.stats-segment-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      renderThemeChart();
+    }
+
+    function renderStatsScreen() {
+      const answered = stats.totalAnswered;
+      const accuracy = answered > 0 ? Math.round((stats.totalCorrect / answered) * 100) : 0;
+      document.getElementById('stats-accuracy').textContent = `${accuracy}%`;
+      document.getElementById('stats-answered').textContent = `${answered} réponse${answered > 1 ? 's' : ''}`;
+      document.getElementById('stats-best-streak').textContent = stats.bestStreak;
+      document.getElementById('stats-cycle').textContent = (stats.cycles || 0) + 1;
+
+      const seenSet = new Set(stats.seenIds || []);
+      const remaining = ALL_QUESTIONS.filter(q => !seenSet.has(`${q.day_number}-${q.difficulty}-${q.order}`)).length;
+      document.getElementById('stats-remaining').textContent = `${remaining} restante${remaining > 1 ? 's' : ''}`;
+
+      setStatsViewMode(statsViewMode);
+    }
+
+    function getBarColor(pct) {
+      if (pct >= 80) return { text: '#facc15', fill: 'linear-gradient(180deg, #facc15, #a16207)' };
+      if (pct >= 50) return { text: '#67e8f9', fill: 'linear-gradient(180deg, #22d3ee, #0f766e)' };
+      return { text: '#ef4444', fill: 'linear-gradient(180deg, #ef4444, #b91c1c)' };
+    }
+
+    function renderThemeChart() {
+      const titleMap = {
+        all: 'Précision par thème - Toutes',
+        abordable: 'Précision par thème - Abordable',
+        expert: 'Précision par thème - Expert',
+      };
+      document.getElementById('theme-chart-title').textContent = titleMap[statsViewMode];
+
+      const themes = [...new Set(ALL_QUESTIONS.map(q => q.theme))];
+      const container = document.getElementById('theme-bars');
+
+      container.innerHTML = themes.map(theme => {
+        const data = (stats.byTheme[theme] && stats.byTheme[theme][statsViewMode]) || { correct: 0, answered: 0 };
+        const pct = data.answered > 0 ? Math.round((data.correct / data.answered) * 100) : 0;
+        const color = getBarColor(pct);
+        const height = data.answered > 0 ? Math.max(12, Math.min(100, pct)) : 6;
+
+        return `
+          <div class="theme-bar-item" title="${theme}: ${pct}% (${data.correct}/${data.answered})">
+            <div class="theme-bar-pct" style="color:${color.text}">${pct}%</div>
+            <div class="theme-bar-track">
+              <div class="theme-bar-fill" style="height:${height}%;background:${color.fill}"></div>
+            </div>
+            <div class="theme-bar-label">${theme}</div>
+          </div>
+        `;
+      }).join('');
     }
 
     // ======================================
@@ -1060,6 +1411,7 @@
       }
 
       stats.totalAnswered++;
+      recordAnswerStats(q, isCorrect);
       if (sessionStreak > stats.bestStreak) stats.bestStreak = sessionStreak;
 
       // Mark question as seen
@@ -1093,6 +1445,7 @@
       const q = quizQueue[currentQuestionIndex];
       const qId = `${q.day_number}-${q.difficulty}-${q.order}`;
       if (!stats.seenIds.includes(qId)) stats.seenIds.push(qId);
+      recordAnswerStats(q, false);
       saveStats();
 
       const input = document.getElementById('answer-input');
