@@ -120,7 +120,12 @@
     .app-header {
       text-align: center;
       padding: calc(env(safe-area-inset-top) + 20px) 20px 24px;
-      position: relative;
+      position: sticky;
+      top: 0;
+      z-index: 12;
+      background:
+        linear-gradient(180deg, rgba(20,20,19,0.86), rgba(20,20,19,0.72) 78%, rgba(20,20,19,0));
+      backdrop-filter: blur(6px);
     }
     .theme-toggle {
       position: fixed;
@@ -191,6 +196,11 @@
       width: 80%;
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+    }
+
+    html:not([data-theme='dark']) .app-header {
+      background:
+        linear-gradient(180deg, rgba(245,244,237,0.95), rgba(245,244,237,0.84) 78%, rgba(245,244,237,0));
     }
     .logo-badge {
       display: inline-flex;
@@ -914,7 +924,7 @@
       </button>
       <div class="logo-badge">⭐ QUIZ ⭐</div>
       <h1 class="app-title">Culture Générale</h1>
-      <p class="app-subtitle">Entraîne-toi, apprends, progresse 🧠</p>
+      <p class="app-subtitle">🧠 👨‍🏫 📚</p>
     </header>
 
     <div class="home-stats">
