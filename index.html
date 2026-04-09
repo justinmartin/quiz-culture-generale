@@ -18,6 +18,9 @@
     }
 
     :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
       --bg-primary: #f5f4ed;
       --bg-secondary: #faf9f5;
       --bg-card: #ffffff;
@@ -73,7 +76,6 @@
       min-height: 100dvh;
       overflow-x: hidden;
       position: relative;
-      padding-top: env(safe-area-inset-top);
     }
 
     body::after {
@@ -122,7 +124,7 @@
       text-align: center;
       width: 100%;
       align-self: stretch;
-      padding: 20px 20px 24px;
+      padding: calc(var(--safe-top) + 6px) 20px 18px;
       position: sticky;
       top: 0;
       z-index: 12;
@@ -132,8 +134,8 @@
     }
     .theme-toggle {
       position: fixed;
-      top: calc(env(safe-area-inset-top) + 2px);
-      right: calc(env(safe-area-inset-right) + 2px);
+      top: calc(var(--safe-top) + 2px);
+      right: calc(var(--safe-right) + 2px);
       width: 86px;
       height: 32px;
       border: 1px solid var(--border-subtle);
@@ -240,7 +242,13 @@
 
     /* ===== SCREENS ===== */
     .screen { display: none; }
-    .screen.active { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: calc(var(--safe-bottom) + 12px);
+    }
 
     /* ===== HOME SCREEN ===== */
     #home-screen { align-items: center; }
@@ -904,8 +912,8 @@
 
     @media (max-width: 400px) {
       .theme-toggle {
-        top: calc(env(safe-area-inset-top) + 2px);
-        right: calc(env(safe-area-inset-right) + 2px);
+        top: calc(var(--safe-top) + 2px);
+        right: calc(var(--safe-right) + 2px);
         width: 82px;
         height: 30px;
       }
