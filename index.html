@@ -60,9 +60,10 @@
     body {
       font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
       background:
-        radial-gradient(circle at 8% 5%, rgba(201,100,66,0.1), transparent 34%),
-        radial-gradient(circle at 90% 95%, rgba(180,132,53,0.11), transparent 30%),
-        radial-gradient(circle at 86% 9%, rgba(217,119,87,0.05), transparent 28%),
+        radial-gradient(circle at 7% 4%, rgba(201,100,66,0.14), transparent 38%),
+        radial-gradient(circle at 92% 96%, rgba(180,132,53,0.14), transparent 34%),
+        radial-gradient(circle at 86% 8%, rgba(217,119,87,0.08), transparent 31%),
+        radial-gradient(circle at 14% 88%, rgba(180,132,53,0.07), transparent 28%),
         var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
@@ -108,8 +109,10 @@
     }
     .theme-toggle {
       position: absolute;
-      top: 14px;
-      right: 20px;
+      top: 8px;
+      right: 10px;
+      min-width: 134px;
+      height: 38px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-card);
       color: var(--text-secondary);
@@ -117,10 +120,37 @@
       font-family: inherit;
       font-size: 12px;
       font-weight: 700;
-      padding: 7px 12px;
+      padding: 0 12px;
       cursor: pointer;
       transition: all 0.2s;
       box-shadow: var(--shadow);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 62px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(201,100,66,0.18);
+      transition: transform 0.25s ease, background 0.25s ease;
+      z-index: 0;
+    }
+    .theme-toggle.is-dark::before {
+      transform: translateX(64px);
+      background: rgba(245,244,237,0.16);
+    }
+    .theme-toggle-label {
+      position: relative;
+      z-index: 1;
+      white-space: nowrap;
+      line-height: 1;
     }
     .theme-toggle:hover {
       border-color: var(--border-glow);
@@ -835,10 +865,13 @@
 
     @media (max-width: 400px) {
       .theme-toggle {
-        top: 10px;
-        right: 16px;
-        padding: 6px 10px;
+        top: 6px;
+        right: 8px;
+        min-width: 126px;
+        height: 36px;
       }
+      .theme-toggle::before { width: 58px; height: 28px; }
+      .theme-toggle.is-dark::before { transform: translateX(58px); }
     }
   </style>
 </head>
@@ -847,7 +880,7 @@
   <!-- ========== HOME SCREEN ========== -->
   <div id="home-screen" class="screen active">
     <header class="app-header">
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">🌙 Sombre</button>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème"><span class="theme-toggle-label">🌙 Sombre</span></button>
       <div class="logo-badge">⭐ QUIZ ⭐</div>
       <h1 class="app-title">Culture Générale</h1>
       <p class="app-subtitle">Entraîne-toi, apprends, progresse 🧠</p>
@@ -1082,7 +1115,12 @@
 
       const btn = document.getElementById('theme-toggle');
       if (btn) {
-        btn.textContent = safeTheme === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+        const label = btn.querySelector('.theme-toggle-label');
+        if (label) {
+          label.textContent = safeTheme === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+        }
+        btn.classList.toggle('is-dark', safeTheme === 'dark');
+        btn.setAttribute('aria-pressed', String(safeTheme === 'dark'));
       }
 
       const themeMeta = document.querySelector('meta[name="theme-color"]');
