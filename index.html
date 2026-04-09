@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#f5f4ed">
   <title>Quiz Culture Générale</title>
   <link rel="manifest" href="manifest.json">
@@ -12,6 +12,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;700;800&display=swap');
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      background: #f5f4ed;
+    }
 
     :root {
       --bg-primary: #f5f4ed;
@@ -57,6 +61,10 @@
       --shadow: rgba(0,0,0,0.35) 0px 10px 30px;
     }
 
+    html[data-theme='dark'] {
+      background: #141413;
+    }
+
     body {
       font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
       background:
@@ -70,6 +78,7 @@
       min-height: 100dvh;
       overflow-x: hidden;
       position: relative;
+      padding-top: env(safe-area-inset-top);
     }
 
     body::before {
@@ -104,57 +113,68 @@
     /* ===== HEADER ===== */
     .app-header {
       text-align: center;
-      padding: 44px 20px 24px;
+      padding: 28px 20px 24px;
       position: relative;
     }
     .theme-toggle {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      min-width: 134px;
-      height: 38px;
+      position: fixed;
+      top: calc(env(safe-area-inset-top) + 8px);
+      right: 8px;
+      width: 166px;
+      height: 40px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-card);
-      color: var(--text-secondary);
       border-radius: 999px;
       font-family: inherit;
       font-size: 12px;
       font-weight: 700;
-      padding: 0 12px;
+      padding: 3px;
       cursor: pointer;
       transition: all 0.2s;
       box-shadow: var(--shadow);
-      display: inline-flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       align-items: center;
-      justify-content: center;
+      justify-items: center;
       overflow: hidden;
       isolation: isolate;
+      z-index: 20;
+      backdrop-filter: blur(2px);
     }
-    .theme-toggle::before {
-      content: '';
+    .theme-toggle-knob {
       position: absolute;
       top: 3px;
       left: 3px;
-      width: 62px;
-      height: 30px;
+      width: 78px;
+      height: 32px;
       border-radius: 999px;
       background: rgba(201,100,66,0.18);
-      transition: transform 0.25s ease, background 0.25s ease;
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
       z-index: 0;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.22);
     }
-    .theme-toggle.is-dark::before {
-      transform: translateX(64px);
+    .theme-toggle.is-dark .theme-toggle-knob {
+      transform: translateX(82px);
       background: rgba(245,244,237,0.16);
     }
-    .theme-toggle-label {
+    .theme-toggle-option {
       position: relative;
       z-index: 1;
       white-space: nowrap;
       line-height: 1;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      user-select: none;
+    }
+    .theme-toggle:not(.is-dark) .theme-toggle-option.light,
+    .theme-toggle.is-dark .theme-toggle-option.dark {
+      color: var(--text-primary);
     }
     .theme-toggle:hover {
       border-color: var(--border-glow);
-      color: var(--text-primary);
       background: var(--bg-card-hover);
     }
     .app-header::after {
@@ -865,13 +885,14 @@
 
     @media (max-width: 400px) {
       .theme-toggle {
-        top: 6px;
-        right: 8px;
-        min-width: 126px;
-        height: 36px;
+        top: calc(env(safe-area-inset-top) + 6px);
+        right: 6px;
+        width: 156px;
+        height: 38px;
       }
-      .theme-toggle::before { width: 58px; height: 28px; }
-      .theme-toggle.is-dark::before { transform: translateX(58px); }
+      .theme-toggle-knob { width: 73px; height: 30px; }
+      .theme-toggle.is-dark .theme-toggle-knob { transform: translateX(77px); }
+      .theme-toggle-option { font-size: 10.5px; }
     }
   </style>
 </head>
@@ -880,7 +901,11 @@
   <!-- ========== HOME SCREEN ========== -->
   <div id="home-screen" class="screen active">
     <header class="app-header">
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème"><span class="theme-toggle-label">🌙 Sombre</span></button>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">
+        <span class="theme-toggle-option light">☀️ Clair</span>
+        <span class="theme-toggle-option dark">🌙 Sombre</span>
+        <span class="theme-toggle-knob" aria-hidden="true"></span>
+      </button>
       <div class="logo-badge">⭐ QUIZ ⭐</div>
       <h1 class="app-title">Culture Générale</h1>
       <p class="app-subtitle">Entraîne-toi, apprends, progresse 🧠</p>
@@ -1115,12 +1140,9 @@
 
       const btn = document.getElementById('theme-toggle');
       if (btn) {
-        const label = btn.querySelector('.theme-toggle-label');
-        if (label) {
-          label.textContent = safeTheme === 'dark' ? '☀️ Clair' : '🌙 Sombre';
-        }
         btn.classList.toggle('is-dark', safeTheme === 'dark');
         btn.setAttribute('aria-pressed', String(safeTheme === 'dark'));
+        btn.setAttribute('aria-label', safeTheme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre');
       }
 
       const themeMeta = document.querySelector('meta[name="theme-color"]');
