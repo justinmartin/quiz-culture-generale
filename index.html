@@ -205,7 +205,15 @@
       background: var(--bg-card-hover);
     }
     .app-header::after {
-      content: none;
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: calc(100% - 42px);
+      height: 1px;
+      opacity: 0.55;
+      background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
     }
 
     html:not([data-theme='dark']) .app-header {
@@ -252,11 +260,11 @@
       flex-direction: column;
       min-height: 100vh;
       min-height: 100dvh;
-      padding-bottom: calc(var(--safe-bottom-ui) + 24px);
+      padding-bottom: calc(var(--safe-bottom-ui) + 40px);
     }
 
     #home-screen.screen.active {
-      padding-bottom: calc(var(--safe-bottom-ui) + 84px);
+      padding-bottom: calc(var(--safe-bottom-ui) + 112px);
     }
 
     /* ===== HOME SCREEN ===== */
@@ -914,11 +922,26 @@
     /* Footer */
     .footer {
       text-align: center;
-      padding: 24px 20px calc(30px + var(--safe-bottom-ui));
+      padding: 24px 20px calc(56px + var(--safe-bottom-ui));
       color: var(--text-muted);
       font-size: 11px;
     }
     .footer a { color: var(--text-secondary); text-decoration: none; }
+
+    .safe-bottom-fade {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: calc(var(--safe-bottom-ui) + 52px);
+      pointer-events: none;
+      z-index: 4;
+      background: linear-gradient(180deg, rgba(20,20,19,0), rgba(20,20,19,0.38) 55%, rgba(20,20,19,0.68));
+    }
+
+    html:not([data-theme='dark']) .safe-bottom-fade {
+      background: linear-gradient(180deg, rgba(245,244,237,0), rgba(245,244,237,0.72) 50%, rgba(245,244,237,0.95));
+    }
 
     @media (max-width: 400px) {
       .theme-toggle {
@@ -1779,5 +1802,6 @@
       }
     });
   </script>
+  <div class="safe-bottom-fade" aria-hidden="true"></div>
 </body>
 </html>
