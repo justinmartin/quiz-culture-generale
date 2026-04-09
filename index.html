@@ -38,6 +38,25 @@
       --shadow: rgba(0,0,0,0.05) 0px 4px 24px;
     }
 
+    html[data-theme='dark'] {
+      --bg-primary: #141413;
+      --bg-secondary: #1a1a18;
+      --bg-card: #30302e;
+      --bg-card-hover: #3a3a37;
+      --border-subtle: #3d3d3a;
+      --border-glow: #5e5d59;
+      --text-primary: #f5f4ed;
+      --text-secondary: #b0aea5;
+      --text-muted: #87867f;
+      --accent-orange: #d97757;
+      --accent-orange-glow: rgba(217,119,87,0.25);
+      --accent-green: #7fa78a;
+      --accent-green-glow: rgba(127,167,138,0.24);
+      --accent-red: #d06262;
+      --accent-red-glow: rgba(208,98,98,0.22);
+      --shadow: rgba(0,0,0,0.35) 0px 10px 30px;
+    }
+
     body {
       font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
       background:
@@ -55,6 +74,27 @@
       text-align: center;
       padding: 44px 20px 24px;
       position: relative;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 14px;
+      right: 20px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .theme-toggle:hover {
+      border-color: var(--border-glow);
+      color: var(--text-primary);
+      background: var(--bg-card-hover);
     }
     .app-header::after {
       content: '';
@@ -78,6 +118,10 @@
       letter-spacing: 1.6px;
       color: var(--accent-orange);
       margin-bottom: 14px;
+    }
+    html[data-theme='dark'] .logo-badge {
+      border-color: #4d4c48;
+      background: #232321;
     }
     .app-title {
       font-family: 'Fraunces', Georgia, serif;
@@ -495,6 +539,9 @@
       border-radius: 12px;
       padding: 6px;
     }
+    html[data-theme='dark'] .stats-segment {
+      background: #232321;
+    }
     .stats-segment-btn {
       border: none;
       border-radius: 8px;
@@ -518,6 +565,10 @@
       border-radius: var(--radius);
       padding: 14px 12px 12px;
       box-shadow: var(--shadow);
+    }
+    html[data-theme='dark'] .theme-chart {
+      background: linear-gradient(180deg, #262624, #1f1f1d);
+      border-color: #3d3d3a;
     }
     .theme-chart-title {
       font-size: 13px;
@@ -553,6 +604,9 @@
       display: flex;
       align-items: flex-end;
       overflow: hidden;
+    }
+    html[data-theme='dark'] .theme-bar-track {
+      background: #3a3a37;
     }
     .theme-bar-fill {
       width: 100%;
@@ -741,6 +795,14 @@
       font-size: 11px;
     }
     .footer a { color: var(--text-secondary); text-decoration: none; }
+
+    @media (max-width: 400px) {
+      .theme-toggle {
+        top: 10px;
+        right: 16px;
+        padding: 6px 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -748,6 +810,7 @@
   <!-- ========== HOME SCREEN ========== -->
   <div id="home-screen" class="screen active">
     <header class="app-header">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">🌙 Sombre</button>
       <div class="logo-badge">⭐ QUIZ ⭐</div>
       <h1 class="app-title">Culture Générale</h1>
       <p class="app-subtitle">Entraîne-toi, apprends, progresse 🧠</p>
@@ -966,6 +1029,39 @@
     let answered = false;
     let SESSION_SIZE = 20;
     let cycleNumber = 1;
+    const THEME_STORAGE_KEY = 'quiz_theme';
+    const THEME_COLOR_LIGHT = '#f5f4ed';
+    const THEME_COLOR_DARK = '#141413';
+
+    function getPreferredTheme() {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === 'light' || stored === 'dark') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(theme) {
+      const safeTheme = theme === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', safeTheme);
+
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.textContent = safeTheme === 'dark' ? '☀️ Clair' : '🌙 Sombre';
+      }
+
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) {
+        themeMeta.setAttribute('content', safeTheme === 'dark' ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+      applyTheme(next);
+    }
+
+    applyTheme(getPreferredTheme());
 
     // Persistent stats
     function createDefaultStats() {
