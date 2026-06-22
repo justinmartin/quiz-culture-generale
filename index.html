@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#151414">
   <title>Quiz Culture Générale</title>
   <link rel="manifest" href="manifest.json">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;500;600;700;800&display=swap');
 
@@ -352,6 +353,328 @@
     .mode-btn .mode-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
     .mode-btn .mode-count { font-size: 12px; color: var(--text-muted); font-weight: 600; }
     .mode-btn .arrow { color: var(--text-muted); font-size: 18px; }
+
+    .menu-open-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+    }
+    .menu-open-btn:hover {
+      border-color: var(--border-glow);
+      background: var(--bg-card-hover);
+      transform: translateY(-1px);
+    }
+
+    /* ===== MAIN MENU ===== */
+    #main-menu-screen {
+      align-items: center;
+    }
+    .menu-hero {
+      width: 100%;
+      max-width: 620px;
+      padding: 12px 20px 8px;
+      text-align: center;
+    }
+    .menu-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--accent-orange);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.4px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+    .menu-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(2.1rem, 8vw, 3.5rem);
+      font-weight: 500;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+    .menu-subtitle {
+      margin-top: 8px;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .menu-grid {
+      width: 100%;
+      max-width: 620px;
+      padding: 22px 20px 10px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .menu-card {
+      width: 100%;
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      color: var(--text-primary);
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .menu-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-glow);
+      background: var(--bg-card-hover);
+    }
+    .menu-card-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      font-size: 28px;
+      background: rgba(201,100,66,0.1);
+      color: var(--accent-orange);
+    }
+    .menu-card.geo .menu-card-icon {
+      background: rgba(201,100,66,0.12);
+      color: var(--accent-orange);
+    }
+    .menu-card-body { flex: 1; min-width: 0; }
+    .menu-card-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+    .menu-card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ===== GEO HOME + GAMES ===== */
+    .geo-shell {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 20px 24px;
+    }
+    .geo-toolbar {
+      width: 100%;
+      max-width: 980px;
+      padding: 16px 20px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .geo-hub-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .geo-hub-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .geo-hub-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-orange);
+      background: var(--bg-card-hover);
+    }
+    .geo-hub-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      background: rgba(201,100,66,0.12);
+      color: var(--accent-orange);
+      flex: 0 0 auto;
+    }
+    .geo-hub-card.countries .geo-hub-badge {
+      background: rgba(56,152,236,0.12);
+      color: var(--accent-blue);
+    }
+    .geo-panel {
+      border: 1px solid var(--border-subtle);
+      border-radius: 26px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-top: 18px;
+    }
+    .geo-panel-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; color: var(--text-primary); }
+    .geo-panel-subtitle { font-size: 13px; color: var(--text-secondary); line-height: 1.45; margin-bottom: 14px; }
+    .geo-option-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .geo-option-btn {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .geo-option-btn.active {
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+      background: rgba(201,100,66,0.1);
+    }
+    .geo-option-btn:hover {
+      border-color: var(--border-glow);
+      color: var(--text-primary);
+    }
+    .geo-status {
+      min-height: 22px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 10px;
+    }
+    .geo-map-box {
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(201,100,66,0.06), rgba(201,100,66,0.03));
+      overflow: hidden;
+      min-height: 320px;
+      position: relative;
+    }
+    .geo-map-box svg { width: 100%; height: 100%; display: block; }
+    .geo-map-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      padding: 18px;
+      text-align: center;
+    }
+    .geo-list-box { margin-top: 14px; display: grid; gap: 12px; }
+    .geo-region-block {
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.55);
+    }
+    html[data-theme='dark'] .geo-region-block { background: rgba(255,255,255,0.03); }
+    .geo-region-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--text-primary); }
+    .geo-dept-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .geo-dept-pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .geo-dept-pill.found {
+      border-color: var(--accent-orange);
+      background: rgba(201,100,66,0.12);
+      color: var(--accent-orange);
+    }
+    .geo-summary { margin-top: 14px; font-size: 13px; color: var(--text-secondary); }
+    .geo-clue {
+      margin-top: 12px;
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(1.3rem, 4.4vw, 1.95rem);
+      line-height: 1.25;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .geo-flag {
+      font-size: clamp(4rem, 18vw, 7rem);
+      line-height: 1;
+      text-align: center;
+      padding: 26px 0 12px;
+    }
+    .geo-map-caption {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .geo-answer-row { display: flex; gap: 10px; margin-top: 14px; align-items: stretch; }
+    .geo-answer-row .answer-input { flex: 1; min-width: 0; }
+    .geo-answer-row .submit-btn { position: static; transform: none; flex: 0 0 56px; border-radius: 16px; height: auto; }
+    .geo-answer-row .submit-btn:hover { transform: scale(1.03); }
+    .geo-feedback { margin-top: 12px; }
+    .geo-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .geo-action-btn {
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s;
+    }
+    .geo-action-btn.primary {
+      background: var(--accent-orange);
+      color: white;
+      border-color: transparent;
+    }
+    .geo-action-btn:hover { transform: translateY(-1px); border-color: var(--border-glow); }
+    .geo-action-btn.primary:hover { background: #b95838; }
+    .geo-result-card {
+      border: 1px solid var(--border-subtle);
+      border-radius: 22px;
+      background: var(--bg-card);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-top: 16px;
+    }
+    .geo-result-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .geo-result-text { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+
+    html[data-theme='dark'] .geo-panel-title,
+    html[data-theme='dark'] .geo-region-title,
+    html[data-theme='dark'] .geo-result-title,
+    html[data-theme='dark'] .geo-clue {
+      color: #f5f4ed;
+    }
+    html[data-theme='dark'] .geo-panel-subtitle,
+    html[data-theme='dark'] .geo-status,
+    html[data-theme='dark'] .geo-summary,
+    html[data-theme='dark'] .geo-map-caption,
+    html[data-theme='dark'] .geo-result-text {
+      color: #c7c4bb;
+    }
+    html[data-theme='dark'] .geo-map-box {
+      background: linear-gradient(180deg, rgba(217,119,87,0.1), rgba(217,119,87,0.04));
+    }
+    html[data-theme='dark'] .geo-region-block {
+      background: rgba(255,255,255,0.04);
+    }
 
     /* Filter chips */
     .filter-section {
@@ -967,8 +1290,50 @@
 </head>
 <body>
 
+  <!-- ========== MAIN MENU ========== -->
+  <div id="main-menu-screen" class="screen active">
+    <header class="app-header">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">
+        <span class="theme-toggle-option light" aria-hidden="true">☀️</span>
+        <span class="theme-toggle-option dark" aria-hidden="true">🌙</span>
+        <span class="theme-toggle-knob" aria-hidden="true"></span>
+      </button>
+      <div class="logo-badge">⭐ QUIZ ⭐</div>
+      <h1 class="app-title">🧠 Cerveau & Géo 🌍</h1>
+    </header>
+
+    <div class="menu-hero">
+      <div class="menu-kicker">Deux jeux</div>
+      <div class="menu-title">Choisis ton thème.</div>
+    </div>
+
+    <div class="menu-grid">
+      <button class="menu-card" onclick="goCultureHome()">
+        <div class="menu-card-icon">📚</div>
+        <div class="menu-card-body">
+          <div class="menu-card-title">Culture générale</div>
+          <div class="menu-card-desc">Les questions de culture générale, de la Table des Savoirs.</div>
+        </div>
+        <span class="arrow">›</span>
+      </button>
+      <button class="menu-card geo" onclick="goGeoHome()">
+        <div class="menu-card-icon">🗺️</div>
+        <div class="menu-card-body">
+          <div class="menu-card-title">Géographie</div>
+          <div class="menu-card-desc">Départements français et pays du monde avec cartes, drapeaux et capitales.</div>
+        </div>
+        <span class="arrow">›</span>
+      </button>
+    </div>
+
+    <div class="footer">
+      Questions issues de <a href="https://latabledessavoirs.fr" target="_blank">La Table des Savoirs</a><br>
+      App d'entraînement personnel
+    </div>
+  </div>
+
   <!-- ========== HOME SCREEN ========== -->
-  <div id="home-screen" class="screen active">
+  <div id="home-screen" class="screen">
     <header class="app-header">
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">
         <span class="theme-toggle-option light" aria-hidden="true">☀️</span>
@@ -979,6 +1344,10 @@
       <h1 class="app-title">Culture Générale</h1>
       <p class="app-subtitle">🧠 👨‍🏫 📚</p>
     </header>
+
+    <div class="geo-shell" style="max-width:500px;padding-top:4px;padding-bottom:0;">
+      <button class="menu-open-btn" onclick="goMainMenu()">← Menu principal</button>
+    </div>
 
     <div class="home-stats">
       <div class="stat-card orange">
@@ -1053,6 +1422,144 @@
       Questions issues de <a href="https://latabledessavoirs.fr" target="_blank">La Table des Savoirs</a><br>
       App d'entraînement personnel<br>
       <button onclick="if(confirm('Réinitialiser toutes les stats et la progression ?')){localStorage.removeItem('quiz_stats');location.reload();}" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;margin-top:8px;text-decoration:underline">Réinitialiser les stats</button>
+    </div>
+  </div>
+
+  <!-- ========== GEO HOME SCREEN ========== -->
+  <div id="geo-home-screen" class="screen">
+    <header class="app-header">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème">
+        <span class="theme-toggle-option light" aria-hidden="true">☀️</span>
+        <span class="theme-toggle-option dark" aria-hidden="true">🌙</span>
+        <span class="theme-toggle-knob" aria-hidden="true"></span>
+      </button>
+      <div class="logo-badge">🗺️ GÉOGRAPHIE 🗺️</div>
+      <h1 class="app-title">Géographie</h1>
+      <p class="app-subtitle">Cartes, repères et réponses libres</p>
+    </header>
+
+    <div class="geo-shell">
+      <div class="geo-toolbar" style="padding-left:0;padding-right:0;">
+        <button class="menu-open-btn" style="max-width:220px;width:auto;margin-top:0;" onclick="goMainMenu()">← Menu principal</button>
+        <div style="font-size:13px;color:var(--text-secondary);font-weight:700;">Choisis un jeu</div>
+      </div>
+
+      <div class="geo-hub-grid">
+        <button class="geo-hub-card" onclick="openGeoDepartments()">
+          <div class="geo-hub-badge">🏛️</div>
+          <div>
+            <div class="menu-card-title">Départements français</div>
+            <div class="menu-card-desc">Les 101 départements, groupés par région, avec une carte et un mode 20 au hasard.</div>
+          </div>
+          <span class="arrow">›</span>
+        </button>
+        <button class="geo-hub-card countries" onclick="openGeoCountries()">
+          <div class="geo-hub-badge">🚩</div>
+          <div>
+            <div class="menu-card-title">Pays et capitales</div>
+            <div class="menu-card-desc">Cartes, drapeaux, noms et réponses libres, avec 20 au hasard si besoin.</div>
+          </div>
+          <span class="arrow">›</span>
+        </button>
+      </div>
+
+      <div class="geo-panel">
+        <div class="geo-panel-title">Navigation</div>
+        <div class="geo-panel-subtitle">Le bouton Accueil ramène au sommet de cet onglet. Depuis là, tu peux revenir au menu principal.</div>
+        <div class="geo-actions">
+          <button class="geo-action-btn primary" onclick="openGeoDepartments()">Départements</button>
+          <button class="geo-action-btn primary" onclick="openGeoCountries()">Pays</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GEO DEPARTMENTS SCREEN ========== -->
+  <div id="geo-departments-screen" class="screen">
+    <div class="quiz-header" style="max-width:980px;">
+      <button class="back-btn" onclick="goGeoHome()">← Accueil</button>
+      <span class="quiz-progress-text" id="dept-progress-text">Départements</span>
+      <button class="back-btn" onclick="goMainMenu()">Menu principal</button>
+    </div>
+
+    <div class="geo-shell">
+      <div class="geo-panel" id="dept-setup-panel">
+        <div class="geo-panel-title">Départements français</div>
+        <div class="geo-panel-subtitle">Les 101 départements sont disponibles. Tu peux jouer en mode clic, en mode liste, ou avec la liste qui se remplit à mesure.</div>
+        <div class="geo-option-group" id="dept-mode-group">
+          <button class="geo-option-btn active" data-mode="click" onclick="setDeptMode('click')">Nom → carte</button>
+          <button class="geo-option-btn" data-mode="reveal" onclick="setDeptMode('reveal')">Liste animée</button>
+          <button class="geo-option-btn" data-mode="combo" onclick="setDeptMode('combo')">Nom + carte + liste</button>
+        </div>
+        <div class="geo-option-group" id="dept-size-group">
+          <button class="geo-option-btn active" data-size="20" onclick="setDeptSessionSize(20)">20 au hasard</button>
+          <button class="geo-option-btn" data-size="101" onclick="setDeptSessionSize(101)">Les 101</button>
+        </div>
+        <div class="geo-actions">
+          <button class="geo-action-btn primary" onclick="startDepartmentGame()">Commencer</button>
+        </div>
+      </div>
+
+      <div class="geo-panel" id="dept-play-panel" style="display:none;">
+        <div class="geo-status" id="dept-status"></div>
+        <div class="geo-clue" id="dept-clue"></div>
+        <div class="geo-map-box" id="dept-map-box">
+          <div class="geo-map-placeholder" id="dept-map-placeholder">Chargement de la carte des départements...</div>
+        </div>
+        <div class="geo-actions">
+          <button class="geo-action-btn primary" id="dept-next-btn" onclick="nextDepartment()" style="display:none;">Département suivant</button>
+          <button class="geo-action-btn" id="dept-reset-btn" onclick="resetDepartmentGame()" style="display:none;">Recommencer</button>
+        </div>
+        <div class="geo-feedback" id="dept-feedback"></div>
+        <div class="geo-summary" id="dept-summary"></div>
+        <div class="geo-list-box" id="dept-list-box"></div>
+        <div class="geo-result-card" id="dept-result-card" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GEO COUNTRIES SCREEN ========== -->
+  <div id="geo-countries-screen" class="screen">
+    <div class="quiz-header" style="max-width:980px;">
+      <button class="back-btn" onclick="goGeoHome()">← Accueil</button>
+      <span class="quiz-progress-text" id="country-progress-text">Pays et capitales</span>
+      <button class="back-btn" onclick="goMainMenu()">Menu principal</button>
+    </div>
+
+    <div class="geo-shell">
+      <div class="geo-panel" id="country-setup-panel">
+        <div class="geo-panel-title">Pays et capitales</div>
+        <div class="geo-panel-subtitle">Choisis la source de l'indice, la réponse attendue, et la taille de la session. Les réponses sont libres.</div>
+        <div class="geo-option-group" id="country-mode-group"></div>
+        <div class="geo-option-group" id="country-size-group">
+          <button class="geo-option-btn active" data-size="20" onclick="setCountrySessionSize(20)">20 au hasard</button>
+          <button class="geo-option-btn" data-size="195" onclick="setCountrySessionSize(195)">Les 195</button>
+        </div>
+        <div class="geo-actions">
+          <button class="geo-action-btn primary" onclick="startCountryGame()">Commencer</button>
+        </div>
+      </div>
+
+      <div class="geo-panel" id="country-play-panel" style="display:none;">
+        <div class="geo-status" id="country-status"></div>
+        <div class="geo-clue" id="country-clue"></div>
+        <div class="geo-map-box" id="country-map-box" style="display:none;">
+          <div class="geo-map-placeholder" id="country-map-placeholder">Chargement de la carte du pays...</div>
+        </div>
+        <div class="geo-flag" id="country-flag" style="display:none;"></div>
+        <div class="geo-map-caption" id="country-caption"></div>
+        <div class="geo-answer-row">
+          <input type="text" class="answer-input" id="country-answer-input" placeholder="Ta réponse..." autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button class="submit-btn" id="country-submit-btn" onclick="checkCountryAnswer()">→</button>
+        </div>
+        <div class="feedback geo-feedback" id="country-feedback"></div>
+        <div class="geo-actions">
+          <button class="geo-action-btn primary" id="country-next-btn" onclick="nextCountry()" style="display:none;">Question suivante</button>
+          <button class="geo-action-btn" id="country-skip-btn" onclick="skipCountry()">Passer</button>
+          <button class="geo-action-btn" id="country-reset-btn" onclick="resetCountryGame()" style="display:none;">Recommencer</button>
+        </div>
+        <div class="geo-result-card" id="country-result-card" style="display:none;"></div>
+      </div>
     </div>
   </div>
 
@@ -1193,9 +1700,54 @@
     let answered = false;
     let SESSION_SIZE = 20;
     let cycleNumber = 1;
+    const GEO_DEPARTMENTS_URL = 'https://geo.api.gouv.fr/departements?fields=code,nom,region';
+    const GEO_DEPARTMENT_GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements.geojson';
+    const GEO_COUNTRIES_URL = 'https://raw.githubusercontent.com/mledoze/countries/master/countries.json';
+    const GEO_COUNTRY_GEOJSON_URL = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
     const THEME_STORAGE_KEY = 'quiz_theme';
     const THEME_COLOR_LIGHT = '#f5f4ed';
     const THEME_COLOR_DARK = '#151414';
+
+    const COUNTRY_GAME_MODES = [
+      { id: 'flag-country', label: '🚩 Drapeau → Pays', source: 'flag', target: 'country', description: 'Le drapeau sert d’indice, il faut trouver le pays.' },
+      { id: 'flag-capital', label: '🚩 Drapeau → Capitale', source: 'flag', target: 'capital', description: 'Le drapeau sert d’indice, il faut trouver la capitale.' },
+      { id: 'map-country', label: '🗺️ Carte → Pays', source: 'map', target: 'country', description: 'Un zoom sur le pays et ses alentours, réponse libre.' },
+      { id: 'map-capital', label: '🗺️ Carte → Capitale', source: 'map', target: 'capital', description: 'La carte sert d’indice, il faut donner la capitale.' },
+      { id: 'name-country', label: '🏷️ Nom → Pays', source: 'name', target: 'country', description: 'Le nom est affiché, il faut répondre avec le pays.' },
+      { id: 'name-capital', label: '🏷️ Nom → Capitale', source: 'name', target: 'capital', description: 'Le nom est affiché, il faut donner la capitale.' },
+    ];
+
+    let geoDataPromise = null;
+    let geoData = {
+      departments: [],
+      departmentGeojson: null,
+      countries: [],
+      countryGeojson: null,
+      countryFeatureByName: new Map(),
+      countryFeatureByNormalizedName: new Map(),
+      departmentByCode: new Map(),
+    };
+
+    let departmentGameState = {
+      mode: 'click',
+      sessionSize: 20,
+      queue: [],
+      currentIndex: 0,
+      foundCodes: new Set(),
+      current: null,
+      completed: false,
+    };
+
+    let countryGameState = {
+      modeId: 'flag-country',
+      sessionSize: 20,
+      queue: [],
+      currentIndex: 0,
+      score: 0,
+      completed: false,
+      current: null,
+      awaitingAnswer: true,
+    };
 
     function getPreferredTheme() {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -1207,12 +1759,11 @@
       const safeTheme = theme === 'dark' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', safeTheme);
 
-      const btn = document.getElementById('theme-toggle');
-      if (btn) {
+      document.querySelectorAll('.theme-toggle').forEach(btn => {
         btn.classList.toggle('is-dark', safeTheme === 'dark');
         btn.setAttribute('aria-pressed', String(safeTheme === 'dark'));
         btn.setAttribute('aria-label', safeTheme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre');
-      }
+      });
 
       const themeMeta = document.querySelector('meta[name="theme-color"]');
       if (themeMeta) {
@@ -1324,6 +1875,7 @@
       updateHomeStats();
       buildThemeChips();
       updateCounts();
+      buildCountryModeButtons();
       saveStats();
     }
 
@@ -1489,6 +2041,644 @@
           </div>
         `;
       }).join('');
+    }
+
+    // ======================================
+    // GÉOGRAPHIE
+    // ======================================
+    function buildCountryModeButtons() {
+      const container = document.getElementById('country-mode-group');
+      if (!container) return;
+
+      container.innerHTML = COUNTRY_GAME_MODES.map(mode => `
+        <button class="geo-option-btn ${mode.id === countryGameState.modeId ? 'active' : ''}" data-mode-id="${mode.id}" onclick="setCountryMode('${mode.id}')">
+          ${mode.label}
+        </button>
+      `).join('');
+    }
+
+    function setCountryMode(modeId) {
+      countryGameState.modeId = modeId;
+      document.querySelectorAll('#country-mode-group .geo-option-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.modeId === modeId);
+      });
+    }
+
+    function setCountrySessionSize(size) {
+      countryGameState.sessionSize = size;
+      document.querySelectorAll('#country-size-group .geo-option-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.size) === size);
+      });
+    }
+
+    function setDeptMode(mode) {
+      departmentGameState.mode = mode;
+      document.querySelectorAll('#dept-mode-group .geo-option-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+    }
+
+    function setDeptSessionSize(size) {
+      departmentGameState.sessionSize = size;
+      document.querySelectorAll('#dept-size-group .geo-option-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.size) === size);
+      });
+    }
+
+    function goCultureHome() {
+      updateHomeStats();
+      updateCounts();
+      showScreen('home-screen');
+    }
+
+    function goGeoHome() {
+      showScreen('geo-home-screen');
+    }
+
+    function goMainMenu() {
+      showScreen('main-menu-screen');
+    }
+
+    function openGeoDepartments() {
+      showScreen('geo-departments-screen');
+      showDepartmentSetup();
+    }
+
+    function openGeoCountries() {
+      showScreen('geo-countries-screen');
+      showCountrySetup();
+    }
+
+    function goHome() {
+      goCultureHome();
+    }
+
+    async function loadGeoData() {
+      if (geoDataPromise) return geoDataPromise;
+
+      geoDataPromise = Promise.all([
+        fetch(GEO_DEPARTMENTS_URL).then(r => r.json()),
+        fetch(GEO_DEPARTMENT_GEOJSON_URL).then(r => r.json()),
+        fetch(GEO_COUNTRIES_URL).then(r => r.json()),
+        fetch(GEO_COUNTRY_GEOJSON_URL).then(r => r.json()),
+      ]).then(([departments, departmentGeojson, countriesRaw, countryGeojson]) => {
+        const departmentByCode = new Map();
+        departments.forEach(department => departmentByCode.set(department.code, department));
+
+        const mergedDepartments = departments
+          .map(department => ({
+            ...department,
+            feature: departmentGeojson.features.find(feature => feature.properties && feature.properties.code === department.code) || null,
+          }))
+          .filter(department => department.feature);
+
+        const countryFeatureByName = new Map();
+        const countryFeatureByNormalizedName = new Map();
+        countryGeojson.features.forEach(feature => {
+          const featureName = feature.properties && feature.properties.name;
+          if (!featureName) return;
+          countryFeatureByName.set(featureName, feature);
+          countryFeatureByNormalizedName.set(normalize(featureName), feature);
+        });
+
+        const countries = countriesRaw
+          .filter(country => country.unMember || ['Palestine', 'Vatican City'].includes(country.name.common))
+          .map(country => ({
+            ...country,
+            feature: countryFeatureByNormalizedName.get(normalize(country.name.common))
+              || countryFeatureByNormalizedName.get(normalize(country.name.official))
+              || countryFeatureByNormalizedName.get(normalize(country.translations && country.translations.fra && country.translations.fra.common || ''))
+              || null,
+          }))
+          .filter(country => country.feature);
+
+        countries.sort((a, b) => a.name.common.localeCompare(b.name.common, 'fr'));
+        mergedDepartments.sort((a, b) => departmentSortKey(a).localeCompare(departmentSortKey(b), 'fr'));
+
+        geoData = {
+          departments: mergedDepartments,
+          departmentGeojson,
+          countries,
+          countryGeojson,
+          countryFeatureByName,
+          countryFeatureByNormalizedName,
+          departmentByCode,
+        };
+
+        return geoData;
+      }).catch(error => {
+        console.error('Erreur chargement géographie:', error);
+        return null;
+      });
+
+      return geoDataPromise;
+    }
+
+    function departmentSortKey(department) {
+      const region = department.region && department.region.nom ? department.region.nom : '';
+      const code = String(department.code || '').padStart(3, '0');
+      return `${region}-${code}-${department.nom || ''}`;
+    }
+
+    function departmentCodeToNumber(code) {
+      const numeric = Number(String(code).replace(/[^0-9]/g, ''));
+      return Number.isFinite(numeric) ? numeric : 999;
+    }
+
+    function selectRandomItems(items, count) {
+      return shuffleArray([...items]).slice(0, Math.min(count, items.length));
+    }
+
+    function showDepartmentSetup() {
+      const setup = document.getElementById('dept-setup-panel');
+      const play = document.getElementById('dept-play-panel');
+      if (setup) setup.style.display = 'block';
+      if (play) play.style.display = 'none';
+    }
+
+    function showCountrySetup() {
+      const setup = document.getElementById('country-setup-panel');
+      const play = document.getElementById('country-play-panel');
+      if (setup) setup.style.display = 'block';
+      if (play) play.style.display = 'none';
+    }
+
+    function startDepartmentGame() {
+      loadGeoData().then(() => {
+        if (!geoData.departments.length) {
+          alert('Impossible de charger les départements.');
+          return;
+        }
+
+        departmentGameState.queue = buildDepartmentQueue();
+        departmentGameState.currentIndex = 0;
+        departmentGameState.foundCodes = new Set();
+        departmentGameState.completed = false;
+        departmentGameState.current = departmentGameState.queue[0] || null;
+
+        const setup = document.getElementById('dept-setup-panel');
+        const play = document.getElementById('dept-play-panel');
+        if (setup) setup.style.display = 'none';
+        if (play) play.style.display = 'block';
+
+        renderDepartmentGame();
+      });
+    }
+
+    function buildDepartmentQueue() {
+      const base = departmentGameState.mode === 'reveal'
+        ? [...geoData.departments].sort((a, b) => {
+            const regionCompare = (a.region && a.region.nom ? a.region.nom : '').localeCompare(b.region && b.region.nom ? b.region.nom : '', 'fr');
+            if (regionCompare !== 0) return regionCompare;
+            return departmentCodeToNumber(a.code) - departmentCodeToNumber(b.code);
+          })
+        : shuffleArray([...geoData.departments]);
+
+      return base.slice(0, Math.min(departmentGameState.sessionSize, base.length));
+    }
+
+    function getCurrentDepartment() {
+      return departmentGameState.queue[departmentGameState.currentIndex] || null;
+    }
+
+    function renderDepartmentGame() {
+      const current = getCurrentDepartment();
+      departmentGameState.current = current;
+
+      const total = departmentGameState.queue.length;
+      const found = departmentGameState.foundCodes.size;
+      const status = document.getElementById('dept-status');
+      const clue = document.getElementById('dept-clue');
+      const summary = document.getElementById('dept-summary');
+      const feedback = document.getElementById('dept-feedback');
+      const nextBtn = document.getElementById('dept-next-btn');
+      const resetBtn = document.getElementById('dept-reset-btn');
+      const resultCard = document.getElementById('dept-result-card');
+
+      if (status) {
+        status.textContent = `${Math.min(departmentGameState.currentIndex + 1, total)} / ${total} · ${found} trouvés`;
+      }
+
+      if (current) {
+        clue.textContent = departmentGameState.mode === 'reveal'
+          ? `${current.nom} · ${current.code}`
+          : `Trouve : ${current.nom}`;
+      } else {
+        clue.textContent = 'Tous les départements sélectionnés ont été passés.';
+      }
+
+      if (summary) {
+        summary.textContent = departmentGameState.mode === 'reveal'
+          ? 'Mode liste animée: chaque clic sur le bouton révèle le département suivant.'
+          : 'Clique sur le département demandé dans la carte.';
+      }
+
+      if (feedback) feedback.textContent = '';
+
+      if (departmentGameState.completed) {
+        nextBtn.style.display = 'none';
+        resetBtn.style.display = 'inline-flex';
+      } else {
+        nextBtn.style.display = departmentGameState.mode === 'reveal' ? 'inline-flex' : 'none';
+        resetBtn.style.display = 'none';
+      }
+
+      if (resultCard) {
+        resultCard.style.display = departmentGameState.completed ? 'block' : 'none';
+        if (departmentGameState.completed) {
+          resultCard.innerHTML = `
+            <div class="geo-result-title">Session terminée</div>
+            <div class="geo-result-text">${found} département${found > 1 ? 's' : ''} cités sur ${total}. Tu peux relancer une session ou changer de mode.</div>
+          `;
+        }
+      }
+
+      renderDepartmentList();
+      renderDepartmentMap();
+    }
+
+    function renderDepartmentList() {
+      const box = document.getElementById('dept-list-box');
+      if (!box) return;
+
+      const foundDepartments = geoData.departments
+        .filter(department => departmentGameState.foundCodes.has(department.code))
+        .sort((a, b) => {
+          const regionCompare = (a.region && a.region.nom ? a.region.nom : '').localeCompare(b.region && b.region.nom ? b.region.nom : '', 'fr');
+          if (regionCompare !== 0) return regionCompare;
+          return departmentCodeToNumber(a.code) - departmentCodeToNumber(b.code);
+        });
+
+      if (foundDepartments.length === 0) {
+        box.innerHTML = '<div class="geo-result-text">Aucun département cité pour le moment.</div>';
+        return;
+      }
+
+      const grouped = new Map();
+      foundDepartments.forEach(department => {
+        const regionName = department.region && department.region.nom ? department.region.nom : 'Autre';
+        if (!grouped.has(regionName)) grouped.set(regionName, []);
+        grouped.get(regionName).push(department);
+      });
+
+      box.innerHTML = [...grouped.entries()].map(([regionName, departments]) => `
+        <div class="geo-region-block">
+          <div class="geo-region-title">${regionName}</div>
+          <div class="geo-dept-list">
+            ${departments.map(department => `<span class="geo-dept-pill found">${department.code} · ${department.nom}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDepartmentMap() {
+      const box = document.getElementById('dept-map-box');
+      const placeholder = document.getElementById('dept-map-placeholder');
+      if (!box || !geoData.departmentGeojson || !window.d3) return;
+
+      placeholder.style.display = 'none';
+      box.querySelectorAll('svg').forEach(svg => svg.remove());
+
+      const width = Math.max(320, box.clientWidth || 900);
+      const height = Math.max(320, Math.round(width * 0.72));
+
+      const svg = d3.select(box).append('svg')
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('width', width)
+        .attr('height', height);
+
+      const projection = d3.geoMercator().fitSize([width - 30, height - 30], geoData.departmentGeojson);
+      const path = d3.geoPath(projection);
+
+      svg.append('g')
+        .selectAll('path')
+        .data(geoData.departmentGeojson.features)
+        .join('path')
+        .attr('d', path)
+        .attr('fill', feature => departmentGameState.foundCodes.has(feature.properties.code) ? 'rgba(201,100,66,0.35)' : 'rgba(201,100,66,0.08)')
+        .attr('stroke', feature => {
+          const current = departmentGameState.current;
+          return current && current.code === feature.properties.code ? 'var(--accent-orange)' : 'var(--border-glow)';
+        })
+        .attr('stroke-width', feature => {
+          const current = departmentGameState.current;
+          return current && current.code === feature.properties.code ? 1.4 : 0.55;
+        })
+        .attr('cursor', departmentGameState.mode === 'reveal' ? 'default' : 'pointer')
+        .on('click', (_, feature) => handleDepartmentSelection(feature.properties.code));
+    }
+
+    function handleDepartmentSelection(code) {
+      if (departmentGameState.completed) return;
+      const current = getCurrentDepartment();
+      if (!current) return;
+
+      const feedback = document.getElementById('dept-feedback');
+      if (code === current.code) {
+        departmentGameState.foundCodes.add(code);
+        if (feedback) feedback.textContent = `✅ ${current.nom} trouvé.`;
+
+        if (departmentGameState.mode === 'reveal') {
+          const nextBtn = document.getElementById('dept-next-btn');
+          if (nextBtn) nextBtn.style.display = 'inline-flex';
+        } else {
+          window.setTimeout(() => nextDepartment(), 450);
+        }
+      } else {
+        if (feedback) feedback.textContent = `❌ Ce n'est pas ${current.nom}.`;
+      }
+
+      renderDepartmentGame();
+    }
+
+    function nextDepartment() {
+      if (departmentGameState.completed) return;
+
+      const current = getCurrentDepartment();
+      if (current) departmentGameState.foundCodes.add(current.code);
+      departmentGameState.currentIndex++;
+
+      if (departmentGameState.currentIndex >= departmentGameState.queue.length) {
+        departmentGameState.completed = true;
+      }
+
+      renderDepartmentGame();
+    }
+
+    function resetDepartmentGame() {
+      departmentGameState.queue = [];
+      departmentGameState.currentIndex = 0;
+      departmentGameState.foundCodes = new Set();
+      departmentGameState.current = null;
+      departmentGameState.completed = false;
+      showDepartmentSetup();
+      document.getElementById('dept-list-box').innerHTML = '';
+      document.getElementById('dept-feedback').textContent = '';
+      document.getElementById('dept-summary').textContent = '';
+      document.getElementById('dept-result-card').style.display = 'none';
+    }
+
+    function getSelectedCountryMode() {
+      return COUNTRY_GAME_MODES.find(mode => mode.id === countryGameState.modeId) || COUNTRY_GAME_MODES[0];
+    }
+
+    function startCountryGame() {
+      loadGeoData().then(() => {
+        if (!geoData.countries.length) {
+          alert('Impossible de charger les pays.');
+          return;
+        }
+
+        countryGameState.queue = buildCountryQueue();
+        countryGameState.currentIndex = 0;
+        countryGameState.score = 0;
+        countryGameState.completed = false;
+        countryGameState.awaitingAnswer = true;
+        countryGameState.current = countryGameState.queue[0] || null;
+
+        const setup = document.getElementById('country-setup-panel');
+        const play = document.getElementById('country-play-panel');
+        if (setup) setup.style.display = 'none';
+        if (play) play.style.display = 'block';
+
+        renderCountryGame();
+      });
+    }
+
+    function buildCountryQueue() {
+      return selectRandomItems(geoData.countries, countryGameState.sessionSize);
+    }
+
+    function getCurrentCountry() {
+      return countryGameState.queue[countryGameState.currentIndex] || null;
+    }
+
+    function buildCountryAnswers(country) {
+      const answers = new Set();
+      const translations = country.translations && country.translations.fra ? country.translations.fra : {};
+
+      [
+        country.name.common,
+        country.name.official,
+        translations.common,
+        translations.official,
+        ...(country.altSpellings || []),
+      ].filter(Boolean).forEach(answer => answers.add(answer));
+
+      (country.capital || []).filter(Boolean).forEach(answer => answers.add(answer));
+      return [...answers];
+    }
+
+    function getCountryFeature(country) {
+      if (!country) return null;
+      return geoData.countryFeatureByNormalizedName.get(normalize(country.name.common))
+        || geoData.countryFeatureByNormalizedName.get(normalize(country.name.official))
+        || geoData.countryFeatureByNormalizedName.get(normalize(country.translations && country.translations.fra && country.translations.fra.common || ''))
+        || null;
+    }
+
+    function flagEmojiFromCode(code) {
+      if (!code || code.length !== 2) return '🏳️';
+      const upper = code.toUpperCase();
+      return String.fromCodePoint(...upper.split('').map(char => 127397 + char.charCodeAt(0)));
+    }
+
+    function renderCountryGame() {
+      const current = getCurrentCountry();
+      countryGameState.current = current;
+
+      const total = countryGameState.queue.length;
+      const status = document.getElementById('country-status');
+      const clue = document.getElementById('country-clue');
+      const caption = document.getElementById('country-caption');
+      const flag = document.getElementById('country-flag');
+      const mapBox = document.getElementById('country-map-box');
+      const mapPlaceholder = document.getElementById('country-map-placeholder');
+      const input = document.getElementById('country-answer-input');
+      const submitBtn = document.getElementById('country-submit-btn');
+      const feedback = document.getElementById('country-feedback');
+      const nextBtn = document.getElementById('country-next-btn');
+      const skipBtn = document.getElementById('country-skip-btn');
+      const resetBtn = document.getElementById('country-reset-btn');
+      const resultCard = document.getElementById('country-result-card');
+      const mode = getSelectedCountryMode();
+
+      if (status) {
+        status.textContent = `${Math.min(countryGameState.currentIndex + 1, total)} / ${total} · ${countryGameState.score} bonne${countryGameState.score > 1 ? 's' : ''} réponse${countryGameState.score > 1 ? 's' : ''}`;
+      }
+
+      if (current) {
+        clue.textContent = mode.source === 'name'
+          ? `${current.name.common}`
+          : mode.target === 'capital'
+            ? 'Quelle est la capitale ?'
+            : 'Quel est ce pays ?';
+      } else {
+        clue.textContent = 'Session terminée.';
+      }
+
+      if (caption) {
+        caption.textContent = `${mode.label} · réponse libre`;
+      }
+
+      if (flag) {
+        flag.style.display = mode.source === 'flag' ? 'block' : 'none';
+        if (mode.source === 'flag' && current) flag.textContent = flagEmojiFromCode(current.cca2);
+        else flag.textContent = '';
+      }
+
+      if (mapBox) {
+        mapBox.style.display = mode.source === 'map' ? 'block' : 'none';
+        if (mode.source === 'map' && current) {
+          renderCountryMap(current);
+        }
+      }
+
+      if (mapPlaceholder) {
+        mapPlaceholder.style.display = mode.source === 'map' ? 'grid' : 'none';
+      }
+
+      if (input) {
+        input.value = '';
+        input.disabled = countryGameState.completed;
+        input.placeholder = mode.target === 'capital' ? 'Nom de la capitale...' : 'Nom du pays...';
+      }
+
+      if (submitBtn) submitBtn.disabled = countryGameState.completed;
+
+      if (feedback) feedback.className = 'feedback geo-feedback';
+
+      if (countryGameState.completed) {
+        nextBtn.style.display = 'none';
+        skipBtn.style.display = 'none';
+        resetBtn.style.display = 'inline-flex';
+        resultCard.style.display = 'block';
+        const pct = total > 0 ? Math.round((countryGameState.score / total) * 100) : 0;
+        resultCard.innerHTML = `
+          <div class="geo-result-title">Session terminée</div>
+          <div class="geo-result-text">${countryGameState.score} bonne${countryGameState.score > 1 ? 's' : ''} réponse${countryGameState.score > 1 ? 's' : ''} sur ${total}. Précision: ${pct}%.</div>
+        `;
+      } else {
+        resultCard.style.display = 'none';
+        nextBtn.style.display = 'none';
+        skipBtn.style.display = 'inline-flex';
+        resetBtn.style.display = 'none';
+      }
+    }
+
+    function renderCountryMap(country) {
+      const box = document.getElementById('country-map-box');
+      const placeholder = document.getElementById('country-map-placeholder');
+      if (!box || !geoData.countryGeojson || !window.d3) return;
+
+      placeholder.style.display = 'none';
+      box.querySelectorAll('svg').forEach(svg => svg.remove());
+
+      const feature = getCountryFeature(country);
+      if (!feature) return;
+
+      const width = Math.max(320, box.clientWidth || 900);
+      const height = Math.max(320, Math.round(width * 0.6));
+
+      const svg = d3.select(box).append('svg')
+        .attr('viewBox', `0 0 ${width} ${height}`)
+        .attr('width', width)
+        .attr('height', height);
+
+      const projection = d3.geoMercator().fitExtent([[18, 18], [width - 18, height - 18]], feature);
+      const path = d3.geoPath(projection);
+
+      svg.append('g')
+        .selectAll('path')
+        .data(geoData.countryGeojson.features)
+        .join('path')
+        .attr('d', path)
+        .attr('fill', other => {
+          if (other.properties && other.properties.name === feature.properties.name) return 'rgba(201,100,66,0.55)';
+          return 'rgba(201,100,66,0.08)';
+        })
+        .attr('stroke', other => other.properties && other.properties.name === feature.properties.name ? 'var(--accent-orange)' : 'var(--border-glow)')
+        .attr('stroke-width', other => other.properties && other.properties.name === feature.properties.name ? 1.5 : 0.35);
+    }
+
+    function checkCountryAnswer() {
+      if (countryGameState.completed) return;
+
+      const current = getCurrentCountry();
+      if (!current) return;
+
+      const input = document.getElementById('country-answer-input');
+      const userAnswer = input.value.trim();
+      if (!userAnswer) return;
+
+      const mode = getSelectedCountryMode();
+      const validAnswers = buildCountryAnswers(current);
+      const isCorrect = validAnswers.some(answer => normalize(answer) === normalize(userAnswer));
+
+      const feedback = document.getElementById('country-feedback');
+      const nextBtn = document.getElementById('country-next-btn');
+      const skipBtn = document.getElementById('country-skip-btn');
+      const submitBtn = document.getElementById('country-submit-btn');
+
+      countryGameState.awaitingAnswer = false;
+
+      if (isCorrect) {
+        countryGameState.score++;
+        feedback.className = 'feedback correct show geo-feedback';
+        feedback.innerHTML = `<span>✅</span><span>Bravo ! <span class="correct-answer">${mode.target === 'capital' ? (current.capital && current.capital[0] ? current.capital[0] : current.name.common) : current.name.common}</span></span>`;
+      } else {
+        feedback.className = 'feedback wrong show geo-feedback';
+        feedback.innerHTML = `<span>❌</span><span>Raté ! La bonne réponse était <span class="correct-answer">${mode.target === 'capital' ? (current.capital && current.capital[0] ? current.capital[0] : '—') : current.name.common}</span></span>`;
+      }
+
+      input.disabled = true;
+      submitBtn.disabled = true;
+      nextBtn.style.display = 'inline-flex';
+      skipBtn.style.display = 'none';
+    }
+
+    function skipCountry() {
+      if (countryGameState.completed) return;
+
+      const current = getCurrentCountry();
+      if (!current) return;
+
+      const mode = getSelectedCountryMode();
+      const feedback = document.getElementById('country-feedback');
+      const input = document.getElementById('country-answer-input');
+      const submitBtn = document.getElementById('country-submit-btn');
+      const nextBtn = document.getElementById('country-next-btn');
+
+      feedback.className = 'feedback wrong show geo-feedback';
+      feedback.innerHTML = `<span>⏭️</span><span>La bonne réponse était <span class="correct-answer">${mode.target === 'capital' ? (current.capital && current.capital[0] ? current.capital[0] : '—') : current.name.common}</span></span>`;
+      input.disabled = true;
+      submitBtn.disabled = true;
+      nextBtn.style.display = 'inline-flex';
+      document.getElementById('country-skip-btn').style.display = 'none';
+    }
+
+    function nextCountry() {
+      if (countryGameState.completed) return;
+
+      countryGameState.currentIndex++;
+      if (countryGameState.currentIndex >= countryGameState.queue.length) {
+        countryGameState.completed = true;
+      }
+
+      countryGameState.awaitingAnswer = true;
+      renderCountryGame();
+    }
+
+    function resetCountryGame() {
+      countryGameState.queue = [];
+      countryGameState.currentIndex = 0;
+      countryGameState.score = 0;
+      countryGameState.completed = false;
+      countryGameState.awaitingAnswer = true;
+      countryGameState.current = null;
+      showCountrySetup();
+      document.getElementById('country-feedback').className = 'feedback geo-feedback';
+      document.getElementById('country-result-card').style.display = 'none';
     }
 
     // ======================================
@@ -1803,10 +2993,20 @@
     // ======================================
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        if (!answered) {
-          checkAnswer();
-        } else if (document.getElementById('quiz-screen').classList.contains('active')) {
-          nextQuestion();
+        if (document.getElementById('quiz-screen').classList.contains('active')) {
+          if (!answered) {
+            checkAnswer();
+          } else {
+            nextQuestion();
+          }
+        } else if (document.getElementById('geo-countries-screen').classList.contains('active')) {
+          if (countryGameState.completed) return;
+          const nextBtn = document.getElementById('country-next-btn');
+          if (nextBtn && nextBtn.style.display !== 'none') {
+            nextCountry();
+          } else {
+            checkCountryAnswer();
+          }
         }
       }
     });

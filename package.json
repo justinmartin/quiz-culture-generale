@@ -199,7 +199,7 @@
     "universalify": "^2.0.1",
     "unpipe": "^1.0.0",
     "uri-js": "^4.4.1",
-    "vercel": "^50.25.4",
+    "vercel": "^54.12.2",
     "web-vitals": "^0.2.4",
     "webidl-conversions": "^3.0.1",
     "whatwg-url": "^5.0.0",
