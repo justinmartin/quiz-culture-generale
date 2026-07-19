@@ -1,0 +1,13 @@
+{
+  "name": "Quiz Culture Générale & Géo",
+  "short_name": "Quiz CG",
+  "description": "Entraîne-toi avec les questions de La Table des Savoirs + géographie",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#151414",
+  "theme_color": "#151414",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
