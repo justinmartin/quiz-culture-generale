@@ -1386,3 +1386,86 @@ html:not([data-theme='dark']) .safe-bottom-fade {
   .theme-toggle.is-dark .theme-toggle-knob { transform: translateX(40px); }
   .theme-toggle-option { font-size: 14px; }
 }
+
+/* ===== CHRONO ===== */
+.chrono-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 16px;
+  margin-bottom: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.chrono-toggle .chrono-state { color: var(--text-muted); font-weight: 600; }
+.chrono-toggle.active { border-color: var(--accent-orange); color: var(--accent-orange); }
+.chrono-toggle.active .chrono-state { color: var(--accent-orange); }
+.chrono-bar {
+  width: 100%;
+  max-width: 460px;
+  height: 4px;
+  margin: 6px auto 0;
+  background: var(--border-subtle);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.chrono-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--accent-green);
+  transition: width 0.1s linear, background 0.3s;
+}
+.chrono-fill.urgent { background: var(--accent-red); }
+
+/* ===== RÉCAP DES ERREURS ===== */
+.results-mistakes {
+  width: 100%;
+  margin: 4px 0 20px;
+  text-align: left;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+.mistakes-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.mistake {
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent-red);
+  background: var(--bg-secondary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 8px;
+}
+.mistake-q { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
+.mistake-a { font-size: 13px; margin-top: 4px; }
+.mistake-yours { color: var(--text-muted); }
+
+/* ===== POINT FAIBLE ===== */
+.weakest-theme {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-orange);
+  border-radius: var(--radius);
+  color: var(--accent-orange);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.weakest-theme .weakest-name { color: var(--text-secondary); font-weight: 500; font-size: 13px; }

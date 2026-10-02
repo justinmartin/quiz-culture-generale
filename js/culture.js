@@ -63,10 +63,10 @@ function buildThemeChips() {
 }
 
 function getFilteredQuestions(mode) {
-  // Révision : uniquement les questions ratées (ignore les filtres de thème).
+  // Révision : questions ratées dont la date de révision est arrivée (ignore les filtres de thème).
   if (mode === 'review') {
-    const wrong = new Set(stats.wrongIds || []);
-    return ALL_QUESTIONS.filter(q => wrong.has(`${q.day_number}-${q.difficulty}-${q.order}`));
+    const today = localDay();
+    return ALL_QUESTIONS.filter(q => { const r = stats.review[qid(q)]; return r && r.due <= today; });
   }
   let qs = ALL_QUESTIONS;
   if (mode === 'abordable') qs = qs.filter(q => q.difficulty === 'abordable');
@@ -79,12 +79,123 @@ function updateCounts() {
   document.getElementById('count-all').textContent = getFilteredQuestions('all').length + ' questions';
   document.getElementById('count-abordable').textContent = getFilteredQuestions('abordable').length + ' questions';
   document.getElementById('count-expert').textContent = getFilteredQuestions('expert').length + ' questions';
-  // Bouton révision : visible uniquement s'il y a des erreurs à rejouer.
-  const reviewCount = (stats.wrongIds || []).length;
+  // Bouton révision : visible s'il y a des questions en cours de révision.
+  const pending = Object.values(stats.review);
+  const today = localDay();
+  const due = pending.filter(r => r.due <= today).length;
   const reviewBtn = document.getElementById('review-btn');
   const reviewCountEl = document.getElementById('count-review');
-  if (reviewBtn) reviewBtn.style.display = reviewCount > 0 ? 'flex' : 'none';
-  if (reviewCountEl) reviewCountEl.textContent = `${reviewCount} question${reviewCount > 1 ? 's' : ''} à réviser`;
+  if (reviewBtn) {
+    reviewBtn.style.display = pending.length > 0 ? 'flex' : 'none';
+    reviewBtn.disabled = due === 0;
+    reviewBtn.style.opacity = due === 0 ? '0.6' : '';
+  }
+  if (reviewCountEl && pending.length) {
+    const next = pending.map(r => r.due).sort()[0];
+    reviewCountEl.textContent = due > 0
+      ? `${due} à réviser aujourd'hui` + (pending.length > due ? ` · ${pending.length - due} plus tard` : '')
+      : `Prochaine révision ${next === localDay(1) ? 'demain' : 'le ' + next.split('-').reverse().join('/')} (${pending.length} en cours)`;
+  }
+}
+
+// ---------- Répétition espacée ----------
+// Intervalle (jours) avant la prochaine révision quand on atteint la boîte n.
+const REVIEW_INTERVAL_DAYS = { 2: 2, 3: 5 };
+
+function qid(q) { return `${q.day_number}-${q.difficulty}-${q.order}`; }
+
+function reviewOnWrong(id) {
+  stats.review[id] = { box: 1, due: localDay() };
+}
+
+function reviewOnRight(id) {
+  const r = stats.review[id];
+  if (!r) return;
+  if (r.box >= 3) { delete stats.review[id]; return; } // maîtrisée
+  r.box += 1;
+  r.due = localDay(REVIEW_INTERVAL_DAYS[r.box]);
+}
+
+// Question jouée (réponse ou passe) : stats, vue, révision, journal de session.
+function recordQuestion(q, userAnswer, isCorrect) {
+  const id = qid(q);
+  stats.totalAnswered++;
+  recordAnswerStats(q, isCorrect);
+  if (!stats.seenIds.includes(id)) stats.seenIds.push(id);
+  if (isCorrect) reviewOnRight(id); else reviewOnWrong(id);
+  saveStats();
+  sessionLog.push({ q, userAnswer, isCorrect });
+}
+
+// ---------- Mode chrono (utilise timer_ms de chaque question) ----------
+let chronoEnabled = (() => { try { return localStorage.getItem('quiz_chrono') === '1'; } catch (e) { return false; } })();
+let chronoTimer = null;
+
+function toggleChrono() {
+  chronoEnabled = !chronoEnabled;
+  try { localStorage.setItem('quiz_chrono', chronoEnabled ? '1' : '0'); } catch (e) {}
+  renderChronoToggle();
+}
+
+function renderChronoToggle() {
+  const el = document.getElementById('chrono-toggle');
+  if (!el) return;
+  el.classList.toggle('active', chronoEnabled);
+  el.setAttribute('aria-pressed', String(chronoEnabled));
+  el.querySelector('.chrono-state').textContent = chronoEnabled ? 'activé' : 'désactivé';
+}
+
+function startChrono(q) {
+  stopChrono();
+  const bar = document.getElementById('chrono-bar');
+  if (!chronoEnabled) { bar.style.display = 'none'; return; }
+  const total = q.timer_ms || 30000;
+  const end = Date.now() + total;
+  bar.style.display = 'block';
+  const fill = bar.firstElementChild;
+  const tick = () => {
+    const left = Math.max(0, end - Date.now());
+    fill.style.width = `${(left / total) * 100}%`;
+    fill.classList.toggle('urgent', left < 5000);
+    if (left === 0) { stopChrono(); skipQuestion(true); }
+  };
+  tick();
+  chronoTimer = setInterval(tick, 100);
+}
+
+function stopChrono() {
+  if (chronoTimer) clearInterval(chronoTimer);
+  chronoTimer = null;
+}
+
+// ---------- Point faible ----------
+function weakestTheme(minAnswered = 10) {
+  let worst = null;
+  Object.entries(stats.byTheme).forEach(([theme, s]) => {
+    if (s.all.answered < minAnswered) return;
+    const pct = s.all.correct / s.all.answered;
+    if (!worst || pct < worst.pct) worst = { theme, pct };
+  });
+  return worst;
+}
+
+function trainWeakestTheme() {
+  const w = weakestTheme();
+  if (!w) return;
+  selectedThemes.clear();
+  selectedThemes.add(w.theme);
+  document.querySelectorAll('#theme-chips .chip').forEach(c => c.classList.toggle('active', c.dataset.theme === w.theme));
+  startQuiz('all');
+}
+
+function renderWeakestTheme() {
+  const el = document.getElementById('weakest-theme');
+  if (!el) return;
+  const w = weakestTheme();
+  if (!w) { el.style.display = 'none'; return; }
+  const info = THEME_MAP[w.theme] || { emoji: '📌' };
+  el.style.display = 'flex';
+  el.querySelector('.weakest-name').textContent = `${info.emoji} ${w.theme} · ${Math.round(w.pct * 100)}%`;
 }
 
 function ensureThemeStats(theme) {
@@ -116,6 +227,7 @@ function recordAnswerStats(question, isCorrect) {
 
 function openStats() {
   renderStatsScreen();
+  renderWeakestTheme();
   showScreen('stats-screen');
 }
 
@@ -226,43 +338,52 @@ function startQuiz(mode) {
     return;
   }
 
-  // En révision, on rejoue simplement les questions ratées (sans logique de cycle).
-  quizQueue = mode === 'review' ? shuffleArray([...filteredQuestions]) : buildQueue(filteredQuestions);
+  quizQueue = buildModeQueue();
   currentQuestionIndex = 0;
+  resetSession();
+  showScreen('quiz-screen');
+  showQuestion();
+}
+
+function resetSession() {
   sessionCorrect = 0;
   sessionTotal = 0;
   sessionStreak = 0;
   sessionBestStreak = 0;
+  sessionLog = [];
+}
 
-  showScreen('quiz-screen');
-  showQuestion();
+// En révision : les questions dues du moment (sans logique de cycle). Sinon : cycle sans répétition.
+function buildModeQueue() {
+  if (currentMode === 'review') {
+    filteredQuestions = getFilteredQuestions('review');
+    return shuffleArray([...filteredQuestions]);
+  }
+  return buildQueue(filteredQuestions);
 }
 
 function continueQuiz() {
   // Continue with next batch from the queue
   if (currentQuestionIndex >= quizQueue.length) {
-    quizQueue = buildQueue(filteredQuestions);
+    quizQueue = buildModeQueue();
     currentQuestionIndex = 0;
   }
-  sessionCorrect = 0;
-  sessionTotal = 0;
-  sessionStreak = 0;
-  sessionBestStreak = 0;
+  if (!quizQueue.length) { goHome(); return; } // révision terminée
+  resetSession();
   showScreen('quiz-screen');
   showQuestion();
 }
 
 function showQuestion() {
-  if (currentQuestionIndex >= quizQueue.length) {
-    // Rebuild queue
-    quizQueue = buildQueue(filteredQuestions);
-    currentQuestionIndex = 0;
-  }
-
-  // Check if session is complete (every SESSION_SIZE questions)
+  // Session terminée : toutes les SESSION_SIZE questions, ou plus rien à réviser.
   if (sessionTotal > 0 && sessionTotal % SESSION_SIZE === 0) {
     showResults();
     return;
+  }
+  if (currentQuestionIndex >= quizQueue.length) {
+    quizQueue = buildModeQueue();
+    currentQuestionIndex = 0;
+    if (!quizQueue.length) { showResults(); return; }
   }
 
   const q = quizQueue[currentQuestionIndex];
@@ -329,6 +450,8 @@ function showQuestion() {
   document.getElementById('question-area').classList.remove('animate-in');
   void document.getElementById('question-area').offsetWidth;
   document.getElementById('question-area').classList.add('animate-in');
+
+  startChrono(q);
 }
 
 function normalize(str) {
@@ -384,6 +507,7 @@ function checkAnswer() {
   if (!userAnswer) return;
 
   answered = true;
+  stopChrono();
   const q = quizQueue[currentQuestionIndex];
 
   // Réponses valides : tolérance orthographique (fautes de frappe, accents).
@@ -404,29 +528,18 @@ function checkAnswer() {
     input.className = 'answer-input correct';
     feedbackEl.className = 'feedback correct show';
     feedbackIcon.textContent = '✅';
-    feedbackText.innerHTML = `Bravo ! <span class="correct-answer">${q.answer}</span>`;
+    feedbackText.innerHTML = `Bravo ! <span class="correct-answer">${escapeHtml(q.answer)}</span>`;
   } else {
     sessionStreak = 0;
 
     input.className = 'answer-input wrong';
     feedbackEl.className = 'feedback wrong show';
     feedbackIcon.textContent = '❌';
-    feedbackText.innerHTML = `Raté ! La réponse était : <span class="correct-answer">${q.answer}</span>`;
+    feedbackText.innerHTML = `Raté ! La réponse était : <span class="correct-answer">${escapeHtml(q.answer)}</span>`;
   }
 
-  stats.totalAnswered++;
-  recordAnswerStats(q, isCorrect);
   if (sessionStreak > stats.bestStreak) stats.bestStreak = sessionStreak;
-
-  // Mark question as seen + suivi des erreurs (révision).
-  const qId = `${q.day_number}-${q.difficulty}-${q.order}`;
-  if (!stats.seenIds.includes(qId)) stats.seenIds.push(qId);
-  if (isCorrect) {
-    stats.wrongIds = stats.wrongIds.filter(id => id !== qId); // réussie → on l'enlève
-  } else if (!stats.wrongIds.includes(qId)) {
-    stats.wrongIds.push(qId);                                  // ratée → à réviser
-  }
-  saveStats();
+  recordQuestion(q, userAnswer, isCorrect);
 
   input.disabled = true;
   document.getElementById('submit-btn').disabled = true;
@@ -444,19 +557,17 @@ function checkAnswer() {
   }
 }
 
-function skipQuestion() {
+// timedOut : appelé par le chrono quand le temps est écoulé.
+function skipQuestion(timedOut = false) {
   if (answered) return;
   answered = true;
+  stopChrono();
   sessionTotal++;
   sessionStreak = 0;
-  stats.totalAnswered++;
 
   const q = quizQueue[currentQuestionIndex];
-  const qId = `${q.day_number}-${q.difficulty}-${q.order}`;
-  if (!stats.seenIds.includes(qId)) stats.seenIds.push(qId);
-  if (!stats.wrongIds.includes(qId)) stats.wrongIds.push(qId); // passée = à réviser
-  recordAnswerStats(q, false);
-  saveStats();
+  const typed = document.getElementById('answer-input').value.trim();
+  recordQuestion(q, timedOut ? (typed || '⏱️ temps écoulé') : null, false);
 
   const input = document.getElementById('answer-input');
   input.className = 'answer-input wrong';
@@ -464,8 +575,8 @@ function skipQuestion() {
 
   const feedbackEl = document.getElementById('feedback');
   feedbackEl.className = 'feedback wrong show';
-  document.getElementById('feedback-icon').textContent = '⏭️';
-  document.getElementById('feedback-text').innerHTML = `La réponse était : <span class="correct-answer">${q.answer}</span>`;
+  document.getElementById('feedback-icon').textContent = timedOut ? '⏱️' : '⏭️';
+  document.getElementById('feedback-text').innerHTML = `${timedOut ? 'Temps écoulé ! ' : ''}La réponse était : <span class="correct-answer">${escapeHtml(q.answer)}</span>`;
 
   document.getElementById('submit-btn').disabled = true;
   document.getElementById('skip-btn').style.display = 'none';
@@ -502,6 +613,7 @@ function showResults() {
   document.getElementById('results-wrong').textContent = sessionTotal - sessionCorrect;
   document.getElementById('results-streak').textContent = sessionBestStreak;
   document.getElementById('results-accuracy').textContent = pct + '%';
+  renderSessionMistakes();
 
   showScreen('results-screen');
 }
@@ -509,12 +621,42 @@ function showResults() {
 // ======================================
 // NAVIGATION
 // ======================================
+// Récap des erreurs de la session (question, ta réponse, bonne réponse).
+function renderSessionMistakes() {
+  const el = document.getElementById('results-mistakes');
+  const mistakes = sessionLog.filter(e => !e.isCorrect);
+  if (!mistakes.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = `<div class="mistakes-title">À retenir (${mistakes.length})</div>` + mistakes.map(({ q, userAnswer }) => `
+    <div class="mistake">
+      <div class="mistake-q">${escapeHtml(q.question)}</div>
+      <div class="mistake-a"><span class="correct-answer">${escapeHtml(q.answer)}</span>${userAnswer ? ` <span class="mistake-yours">· toi : « ${escapeHtml(userAnswer)} »</span>` : ''}</div>
+    </div>`).join('');
+}
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function goCultureHome() {
+  stopChrono();
+  updateHomeStats();
+  updateCounts();
+  renderChronoToggle();
+  showScreen('home-screen');
+}
+
+function goHome() { goCultureHome(); }
+
+function goGeoHome() { showScreen('geo-home-screen'); }
+
+function goMainMenu() { showScreen('main-menu-screen'); }
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
 }
-
 
 // ======================================
 // PERSISTENCE

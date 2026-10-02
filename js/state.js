@@ -16,6 +16,7 @@ let sessionBestStreak = 0;
 let currentMode = 'all';
 let selectedThemes = new Set();
 let answered = false;
+let sessionLog = []; // { q, userAnswer, isCorrect } de la session en cours (récap des erreurs)
 let SESSION_SIZE = 20;
 let cycleNumber = 1;
 // Données figées en local (dossier data/) : plus de dépendance réseau au runtime.
@@ -192,7 +193,6 @@ let geoData = {
   usGeojson: null,
 };
 
-
 let countryGameState = {
   scope: 'world',            // 'world' (pays) | 'us' (états américains)
   source: 'flag',            // 'flag' | 'map' | 'name'
@@ -209,7 +209,6 @@ let countryGameState = {
   recorded: false,
   sessionErrors: [],         // lieux ratés (≥1 champ faux) pour le rejeu
 };
-
 
 function getPreferredTheme() {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -294,7 +293,10 @@ function createDefaultStats() {
     totalAnswered: 0,
     bestStreak: 0,
     seenIds: [],
-    wrongIds: [],
+    // Répétition espacée : id de question -> { box: 1..3, due: 'YYYY-MM-DD' }.
+    // Ratée -> boîte 1 (à revoir aujourd'hui). Réussie -> boîte suivante, revue plus tard.
+    // Réussie depuis la boîte 3 -> maîtrisée, retirée.
+    review: {},
     cycles: 0,
     byMode: {
       all: { correct: 0, answered: 0 },
@@ -305,6 +307,13 @@ function createDefaultStats() {
   };
 }
 
+// Date locale 'YYYY-MM-DD', décalée de `offset` jours.
+function localDay(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function normalizeStats(raw) {
   const base = createDefaultStats();
   const src = (raw && typeof raw === 'object') ? raw : {};
@@ -313,7 +322,15 @@ function normalizeStats(raw) {
   base.totalAnswered = Number(src.totalAnswered) || 0;
   base.bestStreak = Number(src.bestStreak) || 0;
   base.seenIds = Array.isArray(src.seenIds) ? src.seenIds : [];
-  base.wrongIds = Array.isArray(src.wrongIds) ? src.wrongIds : [];
+  if (src.review && typeof src.review === 'object') {
+    Object.entries(src.review).forEach(([id, r]) => {
+      if (r && r.box >= 1 && r.box <= 3 && typeof r.due === 'string') base.review[id] = { box: r.box, due: r.due };
+    });
+  }
+  // Migration de l'ancienne liste d'erreurs : tout est à revoir aujourd'hui.
+  if (Array.isArray(src.wrongIds)) {
+    src.wrongIds.forEach(id => { if (!base.review[id]) base.review[id] = { box: 1, due: localDay() }; });
+  }
   base.cycles = Number(src.cycles) || 0;
 
   const modes = ['all', 'abordable', 'expert'];

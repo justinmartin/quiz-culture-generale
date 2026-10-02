@@ -121,28 +121,6 @@ function setCountrySessionSize(size) {
   });
 }
 
-
-
-function goCultureHome() {
-  updateHomeStats();
-  updateCounts();
-  showScreen('home-screen');
-}
-
-function goGeoHome() {
-  showScreen('geo-home-screen');
-}
-
-function goMainMenu() {
-  showScreen('main-menu-screen');
-}
-
-
-
-function goHome() {
-  goCultureHome();
-}
-
 async function loadGeoData() {
   if (geoDataPromise) return geoDataPromise;
 
@@ -246,7 +224,6 @@ function departmentSortKey(department) {
   return `${region}-${code}-${department.nom || ''}`;
 }
 
-
 // Tirage reproductible à partir d'un générateur seedé (pour les défis géo partagés).
 function selectSeededItems(items, count, rng) {
   const a = [...items];
@@ -257,30 +234,12 @@ function selectSeededItems(items, count, rng) {
   return a.slice(0, Math.min(count, a.length));
 }
 
-
 function showCountrySetup() {
   const setup = document.getElementById('country-setup-panel');
   const play = document.getElementById('country-play-panel');
   if (setup) setup.style.display = 'block';
   if (play) play.style.display = 'none';
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 let regionMapZoom = null, regionMapSvg = null;
 

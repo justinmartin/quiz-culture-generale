@@ -1,181 +1,140 @@
 """
-Scraper automatique - La Table des Savoirs
-Utilise le token pour scraper tous les quiz passés via l'API
+Scraper incrémental - La Table des Savoirs
+
+Ajoute à questions.json uniquement les quiz manquants (nouveaux jours, ou jours
+qu'un run précédent n'a pas pu récupérer), au lieu de tout re-télécharger.
+
+    QUIZ_TOKEN="eyJ..." python scrape_with_token.py          # incrémental
+    QUIZ_TOKEN="eyJ..." python scrape_with_token.py --full   # tout re-scraper
+
+Le token se récupère sur latabledessavoirs.fr (voir update.sh).
 """
+import argparse
 import json
-import time
-import urllib.request
 import os
+import socket
+import sys
+import time
+import urllib.error
+import urllib.request
+from collections import Counter
 from datetime import datetime, timedelta
 
-TOKEN = os.environ.get("QUIZ_TOKEN", "YOUR_TOKEN_HERE")  # Set via: export QUIZ_TOKEN="eyJ..."
+# IPv4 d'abord : sur certains réseaux l'IPv6 de l'API est injoignable et urllib
+# (contrairement à curl) attend l'échec de chaque adresse IPv6 avant de tenter l'IPv4.
+_getaddrinfo = socket.getaddrinfo
+socket.getaddrinfo = lambda *a, **k: sorted(_getaddrinfo(*a, **k), key=lambda r: r[0] != socket.AF_INET)
 
 BASE_URL = "https://api.latabledessavoirs.fr"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Origin": "https://latabledessavoirs.fr",
-    "Referer": "https://latabledessavoirs.fr/",
-    "Authorization": f"Bearer {TOKEN}",
-}
-
-HEADERS_NO_AUTH = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-    "Accept": "application/json, text/plain, */*",
-    "Origin": "https://latabledessavoirs.fr",
-    "Referer": "https://latabledessavoirs.fr/",
-}
+QUESTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "questions.json")
+# Libellé dans questions.json -> difficulté côté API
+DIFFICULTIES = {"abordable": "facile", "expert": "difficile"}
+QUESTIONS_PER_QUIZ = 10
 
 
-def api_get(endpoint, auth=True):
-    headers = HEADERS if auth else HEADERS_NO_AUTH
+def api_get(endpoint, token=None):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Origin": "https://latabledessavoirs.fr",
+        "Referer": "https://latabledessavoirs.fr/",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(f"{BASE_URL}{endpoint}", headers=headers)
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=20) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else ""
-        return {"error": e.code, "message": body}
+        return {"error": e.code, "message": e.read().decode() if e.fp else ""}
     except Exception as e:
         return {"error": str(e)}
 
 
 def day_number_to_date(day_number, first_day_str):
-    first_day = datetime.fromisoformat(first_day_str.replace('Z', '+00:00'))
+    first_day = datetime.fromisoformat(first_day_str.replace("Z", "+00:00"))
     return (first_day + timedelta(days=day_number - 1)).strftime("%Y-%m-%d")
 
 
 def extract_questions(quiz_data, difficulty_label, day_number, date_str):
-    if not quiz_data or 'day' not in quiz_data:
+    if not quiz_data or "day" not in quiz_data:
         return []
-    day = quiz_data['day']
     questions = []
-    for q in day.get('questions', []):
-        valid_answers = q.get('validAnswers', [])
-        main_answer = valid_answers[0] if valid_answers else ""
+    for q in quiz_data["day"].get("questions", []):
+        valid_answers = q.get("validAnswers", [])
         questions.append({
             "day_number": day_number,
             "date": date_str,
             "difficulty": difficulty_label,
-            "order": q.get('order', 0),
-            "question": q.get('text', ''),
-            "theme": q.get('theme', ''),
-            "answer": main_answer,
+            "order": q.get("order", 0),
+            "question": q.get("text", ""),
+            "theme": q.get("theme", ""),
+            "answer": valid_answers[0] if valid_answers else "",
             "valid_answers": valid_answers,
-            "timer_ms": q.get('initialTimerInMs', 30000),
+            "timer_ms": q.get("initialTimerInMs", 30000),
         })
     return questions
 
 
-def main():
-    print("🎯 Scraper - La Table des Savoirs")
-    print("=" * 50)
-
-    # Get info
-    info = api_get("/info", auth=False)
-    current_day = info['currentDay']
-    first_day_date = info['firstDayDate']
-    print(f"📅 Jour actuel: {current_day}")
-    print(f"📅 Premier jour: {first_day_date}")
-    print(f"📅 Saison: {info['currentSeason']['name']}")
-
-    all_questions = []
-
-    # --- Today's quiz (no auth) ---
-    print(f"\n📝 Quiz du jour (jour {current_day})...")
-    today_data = api_get("/game/offline", auth=False)
-    date_str = day_number_to_date(current_day, first_day_date)
-    today_qs = extract_questions(today_data, "abordable", current_day, date_str)
-    all_questions.extend(today_qs)
-    print(f"   ✅ {len(today_qs)} questions abordable")
-
-    # --- Test auth with a past quiz ---
-    print("\n🔐 Test du token...")
-    test = api_get("/game/offline/1")
-    if 'error' in test:
-        print(f"   ❌ Token invalide ou expiré: {test}")
-        # Try different endpoint patterns
-        for pattern in ["/game/facile/{}", "/game/abordable/{}", "/game/{}"]:
-            ep = pattern.format(1)
-            test2 = api_get(ep)
-            if 'error' not in test2 or test2.get('error') != 401:
-                print(f"   ✅ Endpoint trouvé: {ep} -> {json.dumps(test2, ensure_ascii=False)[:200]}")
-                break
-    else:
-        print(f"   ✅ Token valide !")
-
-    # --- Try various endpoints to find the right one ---
-    print("\n🔍 Exploration des endpoints pour quiz passés...")
-    endpoints_to_try = [
-        ("/game/offline/{day}", "abordable"),
-        ("/game/facile/{day}", "abordable"),
-        ("/game/abordable/{day}", "abordable"),
-        ("/game/{day}", "abordable"),
-        ("/game/difficile/{day}", "expert"),
-        ("/game/expert/{day}", "expert"),
-    ]
-
-    working_endpoints = {}
-    for ep_template, diff in endpoints_to_try:
-        ep = ep_template.format(day=1)
-        result = api_get(ep)
-        status = "✅" if 'day' in result else f"❌ ({result.get('error', 'unknown')})"
-        print(f"   {status} {ep}")
-        if 'day' in result:
-            working_endpoints[diff] = ep_template
-            # Show sample question
-            qs = result['day'].get('questions', [])
-            if qs:
-                print(f"      Exemple: {qs[0].get('text', '')[:80]}...")
-
-    if not working_endpoints:
-        print("\n⚠️  Aucun endpoint trouvé pour les quiz passés.")
-        print("   Sauvegarde du quiz du jour uniquement.")
-        save_questions(all_questions)
-        return
-
-    # --- Scrape all past quizzes ---
-    print(f"\n📝 Scraping de tous les quiz (jours 1 à {current_day - 1})...")
-    for day in range(1, current_day):
-        date_str = day_number_to_date(day, first_day_date)
-        line = f"   📅 Jour {day:>2} ({date_str})"
-
-        for diff_label, ep_template in working_endpoints.items():
-            ep = ep_template.format(day=day)
-            data = api_get(ep)
-            if 'day' in data:
-                qs = extract_questions(data, diff_label, day, date_str)
-                all_questions.extend(qs)
-                line += f"  ✅ {diff_label}({len(qs)})"
-            else:
-                line += f"  ❌ {diff_label}"
-
-        print(line)
-        time.sleep(0.3)
-
-    save_questions(all_questions)
+def load_existing():
+    if not os.path.exists(QUESTIONS_FILE):
+        return []
+    with open(QUESTIONS_FILE, encoding="utf-8") as f:
+        return json.load(f)
 
 
-def save_questions(questions):
-    output_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "questions.json")
-    with open(output_file, "w", encoding="utf-8") as f:
+def save(questions):
+    questions.sort(key=lambda q: (q["day_number"], q["difficulty"], q["order"]))
+    with open(QUESTIONS_FILE, "w", encoding="utf-8") as f:
         json.dump(questions, f, ensure_ascii=False, indent=2)
 
-    print(f"\n💾 {len(questions)} questions sauvegardées dans questions.json")
 
-    themes = {}
-    for q in questions:
-        themes[q['theme']] = themes.get(q['theme'], 0) + 1
-    print("\n📊 Par thème:")
-    for theme, count in sorted(themes.items(), key=lambda x: -x[1]):
-        print(f"   {theme}: {count}")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--full", action="store_true", help="re-scraper tous les jours")
+    args = parser.parse_args()
 
-    diffs = {}
-    for q in questions:
-        diffs[q['difficulty']] = diffs.get(q['difficulty'], 0) + 1
-    print("\n📊 Par difficulté:")
-    for d, c in sorted(diffs.items()):
-        print(f"   {d}: {c}")
+    token = os.environ.get("QUIZ_TOKEN")
+    if not token:
+        sys.exit("❌ QUIZ_TOKEN manquant (voir update.sh pour le récupérer).")
+
+    info = api_get("/info")
+    if "error" in info:
+        sys.exit(f"❌ API indisponible : {info}")
+    current_day, first_day = info["currentDay"], info["firstDayDate"]
+    print(f"📅 Jour actuel : {current_day} ({info['currentSeason']['name']})")
+
+    probe = api_get("/game/facile/1", token)
+    if probe.get("error") == 401:
+        sys.exit("❌ Token invalide ou expiré : renouvelle-le (instructions dans update.sh).")
+
+    existing = [] if args.full else load_existing()
+    complete = Counter((q["day_number"], q["difficulty"]) for q in existing)
+    todo = [(day, label) for day in range(1, current_day + 1) for label in DIFFICULTIES
+            if complete[(day, label)] < QUESTIONS_PER_QUIZ]
+    print(f"🗂️  {len(existing)} questions en base, {len(todo)} quiz à récupérer")
+
+    # On remplace entièrement un quiz incomplet pour éviter les doublons.
+    todo_set = set(todo)
+    questions = [q for q in existing if (q["day_number"], q["difficulty"]) not in todo_set]
+    added, missing = 0, []
+    for day, label in todo:
+        data = api_get(f"/game/{DIFFICULTIES[label]}/{day}", token)
+        if "day" not in data and day == current_day and label == "abordable":
+            data = api_get("/game/offline")  # quiz du jour accessible sans auth
+        qs = extract_questions(data, label, day, day_number_to_date(day, first_day))
+        if qs:
+            questions.extend(qs)
+            added += len(qs)
+            print(f"   ✅ Jour {day:>3} {label:<9} +{len(qs)}")
+        else:
+            missing.append(f"{day}/{label}")
+        time.sleep(0.3)
+
+    save(questions)
+    print(f"\n💾 {len(questions)} questions (+{added}) sauvegardées dans questions.json")
+    if missing:
+        print(f"⚠️  Indisponibles (réessayés au prochain run) : {', '.join(missing)}")
 
 
 if __name__ == "__main__":
