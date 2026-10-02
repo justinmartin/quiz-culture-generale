@@ -1,10 +1,16 @@
 // Service worker — mode hors-ligne du Quiz.
 // Stratégie : network-first (on privilégie le réseau pour rester à jour avec les
 // nouvelles questions du jour), avec repli sur le cache si pas de connexion.
-const CACHE = 'quiz-cache-v1';
+const CACHE = 'quiz-cache-v2';
 const CORE = [
   './',
   './index.html',
+  './css/app.css',
+  './js/state.js',
+  './js/culture.js',
+  './js/geo.js',
+  './js/daily.js',
+  './js/main.js',
   './manifest.json',
   './questions.json',
   './data/departements.json',
